@@ -155,18 +155,6 @@
             transform: translateY(0);
             box-shadow: none;
         }
-        
-        .wish-button.secondary {
-            background-color: transparent;
-            color: var(--wabi-sabi-accent);
-            border-color: var(--wabi-sabi-border);
-        }
-
-        .wish-button.secondary:hover {
-            background-color: var(--wabi-sabi-bg);
-            border-color: var(--wabi-sabi-accent);
-            color: var(--wabi-sabi-text);
-        }
 
         .ripple {
             position: absolute;
@@ -415,57 +403,6 @@
             height: auto; /* 自動高度 */
             min-height: 20px;
         }
-        
-        /* 
-        ==========================================================================
-        修訂介面 (Revision Interface)
-        ==========================================================================
-        */
-        .revision-overlay {
-            position: fixed;
-            top: 0;
-            left: 0;
-            width: 100%;
-            height: 100%;
-            background: rgba(244, 242, 239, 0.8);
-            backdrop-filter: blur(5px);
-            z-index: 10000;
-            display: flex;
-            justify-content: center;
-            align-items: center;
-            opacity: 0;
-            visibility: hidden;
-            transition: opacity var(--animation-duration-fast) ease, visibility 0s var(--animation-duration-fast);
-        }
-
-        .revision-overlay.visible {
-            opacity: 1;
-            visibility: visible;
-            transition: opacity var(--animation-duration-fast) ease, visibility 0s;
-        }
-
-        .revision-modal {
-            width: 90%;
-            max-width: 500px;
-            text-align: center;
-            transform: scale(0.95);
-            transition: transform var(--animation-duration-fast) ease;
-        }
-
-        .revision-overlay.visible .revision-modal {
-            transform: scale(1);
-        }
-
-        .revision-modal .wish-input {
-            font-size: 1.5rem;
-            margin-bottom: 2rem;
-        }
-
-        .revision-actions {
-            display: flex;
-            gap: 1rem;
-            justify-content: center;
-        }
 
         /* 
         ==========================================================================
@@ -547,9 +484,6 @@
                 width: 32px;
                 height: 32px;
             }
-            .revision-actions {
-                flex-direction: column;
-            }
         }
     </style>
 </head>
@@ -584,37 +518,27 @@
     <div id="result-container">
         <div class="result-content-wrapper">
             <div class="result-header">
+               <button id="revise-button" class="result-control-button" title="修訂 HTML">
+                   <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke-width="1.5" stroke="currentColor">
+                       <path stroke-linecap="round" stroke-linejoin="round" d="m16.862 4.487 1.687-1.688a1.875 1.875 0 1 1 2.652 2.652L6.832 19.82a4.5 4.5 0 0 1-1.897 1.13l-2.685.8.8-2.685a4.5 4.5 0 0 1 1.13-1.897L16.863 4.487Zm0 0L19.5 7.125" />
+                   </svg>
+               </button>
                <button id="download-button" class="result-control-button" title="下載 HTML">
-                    <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke-width="1.5" stroke="currentColor">
-                        <path stroke-linecap="round" stroke-linejoin="round" d="M3 16.5v2.25A2.25 2.25 0 0 0 5.25 21h13.5A2.25 2.25 0 0 0 21 18.75V16.5M16.5 12 12 16.5m0 0L7.5 12m4.5 4.5V3" />
-                    </svg>
-                </button>
-                <button id="revise-button" class="result-control-button" title="修訂願望">
-                    <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke-width="1.5" stroke="currentColor">
-                        <path stroke-linecap="round" stroke-linejoin="round" d="M16.023 9.348h4.992v-.001M2.985 19.644v-4.992m0 0h4.992m-4.993 0 3.181 3.183a8.25 8.25 0 0 0 11.664 0l3.181-3.183m-4.991-2.691V5.25a2.25 2.25 0 0 0-2.25-2.25h-4.5a2.25 2.25 0 0 0-2.25 2.25v4.992m2.25 0h4.992" />
-                    </svg>
-                </button>
-                <button id="close-button" class="result-control-button close-button" title="關閉"></button>
+                   <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke-width="1.5" stroke="currentColor">
+                       <path stroke-linecap="round" stroke-linejoin="round" d="M3 16.5v2.25A2.25 2.25 0 0 0 5.25 21h13.5A2.25 2.25 0 0 0 21 18.75V16.5M16.5 12 12 16.5m0 0L7.5 12m4.5 4.5V3" />
+                   </svg>
+               </button>
+               <button id="close-button" class="result-control-button close-button" title="關閉"></button>
             </div>
             <div id="tool-output"></div>
-        </div>
-    </div>
-    
-    <div id="revision-overlay" class="revision-overlay">
-        <div class="revision-modal">
-            <input type="text" id="revision-input" class="wish-input" placeholder="描述你的修訂...">
-            <div class="revision-actions">
-                <button id="submit-revision-button" class="wish-button">優化</button>
-                <button id="cancel-revision-button" class="wish-button secondary">取消</button>
-            </div>
         </div>
     </div>
 
     <script>
     // ==========================================================================
     //  侘寂風格許願工具核心 JavaScript
-    //  作者：世界頂尖的編程師 (修訂版)
-    //  功能：捕捉願望，結合內部指令，呼叫 AI 生成工具，並以優雅方式呈現。
+    //  作者：世界頂尖的編程師 (修訂版 v2)
+    //  功能：捕捉願望，結合內部指令，呼叫 AI 生成或修訂工具，並以優雅方式呈現。
     // ==========================================================================
     
     document.addEventListener('DOMContentLoaded', () => {
@@ -628,28 +552,29 @@
         const toolOutput = document.getElementById('tool-output');
         const closeButton = document.getElementById('close-button');
         const downloadButton = document.getElementById('download-button');
+        const reviseButton = document.getElementById('revise-button'); // 【新增】修訂按鈕
         const errorMessage = document.getElementById('error-message');
-        
-        // 新增修訂功能元素
-        const reviseButton = document.getElementById('revise-button');
-        const revisionOverlay = document.getElementById('revision-overlay');
-        const revisionInput = document.getElementById('revision-input');
-        const submitRevisionButton = document.getElementById('submit-revision-button');
-        const cancelRevisionButton = document.getElementById('cancel-revision-button');
 
         // --- 狀態變數 ---
         let currentGeneratedHtml = '';
-        let originalUserWish = '';
 
         // --- API 配置 ---
-        const apiKey = 'csk-mymr9kekk3t8vn3dmxf6em9jjkhcentdr3h9tj88r3xfpvfe';
-        const model = 'qwen-3-235b-a22b-instruct-2507';
-        const apiUrl = 'https://api.cerebras.ai/v1/chat/completions';
+        const API_KEYS = ["sk-p-9-aIT4kSvvL_l4HEAReA"];
+        let currentApiKeyIndex = 0;
+        const API_URL = "https://chatapi.akash.network/api/v1/chat/completions";
+        const MODEL = "Qwen3-235B-A22B-Instruct-2507-FP8";
         
         // ==========================================================================
-        //  核心功能：超級指令生成器
+        //  【優化】指令生成器
         // ==========================================================================
+
+        /**
+         * 創建一個用於「從零生成」HTML 的超級指令
+         * @param {string} userWish - 使用者的原始願望
+         * @returns {string} - 發送給 AI 的完整指令
+         */
         const getSuperPrompt = (userWish) => {
+            // ... (原始 getSuperPrompt 內容保持不變) ...
             return `
 [SYSTEM ROLE: ULTIMATE WEB APPLICATION GENERATOR]
 
@@ -712,43 +637,44 @@
 **使用者願望：** "${userWish}"
 `;
         };
-        
-        // 新增：修訂指令生成器
-        const getRevisionPrompt = (originalWish, revisionRequest) => {
+
+        /**
+         * 【新增】創建一個用於「修訂現有」HTML 的指令
+         * @param {string} revisionWish - 使用者的修訂指令
+         * @param {string} originalHtml - 需要被修訂的原始 HTML 程式碼
+         * @returns {string} - 發送給 AI 的完整修訂指令
+         */
+        const getRevisionPrompt = (revisionWish, originalHtml) => {
             return `
-[SYSTEM ROLE: EXPERT WEB APPLICATION REFINER]
+[SYSTEM ROLE: EXPERT HTML CODE REVISER]
 
-You are a highly skilled AI assistant specializing in iterative web development. You have previously generated a complete, single-file HTML application based on an initial user request. Now, you must intelligently modify that application based on a new revision instruction from the user.
+你是一個專注於修改現有 HTML 程式碼的頂尖前端工程師。你的任務是精準、高效地根據使用者的要求來修訂提供的 HTML，而不是重新創造。
 
-[CONTEXT OF PREVIOUS WORK]
-*   **Initial User Wish:** "${originalWish}"
-*   You have already produced a full HTML file containing the necessary HTML structure, CSS styles within a \`<style>\` tag, and JavaScript logic within a \`<script>\` tag. The design philosophy was modern, clean, and minimalistic, without external libraries.
+[核心原則]
+1.  **最小化修改原則:** 你的首要目標是保留原始程式碼的結構、風格（CSS）、顏色和邏輯。只修改與使用者要求直接相關的部分。
+2.  **風格一致性:** 任何新增的元素或樣式都必須與原始 HTML 的設計風格（色彩、字體、間距等）保持高度一致。
+3.  **禁止重寫:** 絕對不要因為個人偏好而重寫與使用者要求無關的程式碼。尊重並保留原始作者的架構。
+4.  **繁體中文優先:** 所有在介面上新增或修改的中文文字，都必須使用【繁體中文 (zh-Hant)】。
 
-[USER'S REVISION INSTRUCTION]
-The user now wants to modify the application with the following request:
-*   **Revision Request:** "${revisionRequest}"
+[任務]
+根據以下使用者提出的修訂要求，修改所提供的原始 HTML 程式碼。
 
-[YOUR TASK]
-Your task is to act as an expert developer receiving a change request.
-1.  **Analyze the Revision:** Carefully read and understand the user's revision request in the context of the original wish.
-2.  **Modify the Code:** Intelligently modify the HTML, CSS, and/or JavaScript of the *previous output* to implement the requested changes. Do NOT start from scratch. The goal is refinement, not replacement.
-3.  **Maintain Integrity:** Ensure that the modifications are seamlessly integrated. The overall design aesthetic, code quality, and single-file structure must be preserved.
-4.  **Preserve Core Functionality:** The original core functionality derived from "${originalWish}" should remain unless the revision explicitly asks to change it.
-5.  **Adhere to Original Constraints:** You must continue to follow all the constraints from the initial prompt, including:
-    *   Output is a single, complete HTML file.
-    *   No external libraries or frameworks.
-    *   Code is semantic, well-commented, and secure.
-    *   **[Language Enforcement - Highest Priority]:** All user-facing text, including any new elements, must be in **繁體中文 (Traditional Chinese, zh-Hant)**.
+**使用者修訂要求:** "${revisionWish}"
 
-[FINAL OUTPUT REQUIREMENT]
-Your entire response must be ONLY the new, complete, modified HTML code. Do not include any explanations, apologies, or conversational text. Just provide the final, ready-to-use HTML file.
+**需要修訂的原始 HTML 程式碼如下:**
+\`\`\`html
+${originalHtml}
+\`\`\`
 
-Now, process the revision request and generate the updated HTML application.
+[最終輸出要求]
+*   **格式:** 你的回答必須是且只能是一個完整的、單一的 HTML 檔案。
+*   **內容:** 必須包含完整的 \`<!DOCTYPE html>\` 到 \`</html>\` 的所有內容。
+*   **禁止事項:** 你的回答中不要包含除了修訂後的程式碼以外的任何解釋、說明或註解。直接輸出程式碼。
 `;
         };
 
-        // --- 事件監聽器 ---
 
+        // --- 事件監聽器 ---
         wishButton.addEventListener('click', handleWishSubmission);
         wishInput.addEventListener('keydown', (event) => {
             if (event.key === 'Enter') {
@@ -758,114 +684,110 @@ Now, process the revision request and generate the updated HTML application.
         });
         closeButton.addEventListener('click', closeResult);
         downloadButton.addEventListener('click', handleHtmlDownload);
-        
-        // 修訂功能事件監聽器
-        reviseButton.addEventListener('click', showRevisionModal);
-        cancelRevisionButton.addEventListener('click', hideRevisionModal);
-        submitRevisionButton.addEventListener('click', handleRevisionSubmission);
-        revisionInput.addEventListener('keydown', (event) => {
-            if (event.key === 'Enter') {
-                handleRevisionSubmission();
-            }
-        });
-     
+        reviseButton.addEventListener('click', handleRevisionRequest); // 【新增】修訂按鈕事件
+
         
         // --- 核心處理函數 ---
+
+        /**
+         * 處理初次許願請求
+         */
         async function handleWishSubmission() {
             const userWish = wishInput.value.trim();
             if (!userWish) {
                 showError('願望不能為空。');
                 return;
             }
-
-            originalUserWish = userWish; // 保存原始願望
             hideError();
-            showLoader();
-            
-            try {
-                const superPrompt = getSuperPrompt(userWish);
-                const generatedContent = await fetchAIResponse(superPrompt);
-                
-                currentGeneratedHtml = generatedContent;
-                displayResult(currentGeneratedHtml);
-
-            } catch (error) {
-                console.error('實現願望時發生錯誤:', error);
-                showError(`抱歉，實現願望時遇到阻礙: ${error.message}`);
-                hideLoader();
-            }
+            await processAIRequest(getSuperPrompt(userWish), '正在實現願望...');
         }
-        
-        async function handleRevisionSubmission() {
-            const revisionRequest = revisionInput.value.trim();
-            if (!revisionRequest) {
-                revisionInput.style.borderColor = 'var(--wabi-sabi-error)';
-                setTimeout(() => { revisionInput.style.borderColor = ''; }, 2000);
+
+        /**
+         * 【新增】處理修訂 HTML 的請求
+         */
+        async function handleRevisionRequest() {
+            if (!currentGeneratedHtml) {
+                alert('目前沒有可以修訂的內容。');
                 return;
             }
 
-            hideRevisionModal();
-            showLoader();
+            const revisionWish = prompt("請描述您希望如何修訂這個 HTML：", "");
 
+            if (revisionWish && revisionWish.trim() !== '') {
+                await processAIRequest(getRevisionPrompt(revisionWish.trim(), currentGeneratedHtml), '正在修訂中...');
+            }
+        }
+
+        /**
+         * 【新增】統一處理 AI 請求的通用函數
+         * @param {string} prompt - 要發送給 AI 的完整指令
+         * @param {string} loaderText - 加載時顯示的文字
+         */
+        async function processAIRequest(prompt, loaderText = '處理中...') {
+            showLoader(loaderText);
             try {
-                const revisionPrompt = getRevisionPrompt(originalUserWish, revisionRequest);
-                const generatedContent = await fetchAIResponse(revisionPrompt);
-                
-                currentGeneratedHtml = generatedContent;
-                updateResultDisplay(currentGeneratedHtml);
-                
-                // 更新原始願望以支持連續修訂
-                originalUserWish = `(Originally: ${originalUserWish}) - Then revised to incorporate: ${revisionRequest}`;
+                const response = await fetch(API_URL, {
+                    method: 'POST',
+                    headers: {
+                        'Content-Type': 'application/json',
+                        'Authorization': `Bearer ${API_KEYS[currentApiKeyIndex]}`
+                    },
+                    body: JSON.stringify({
+                        model: MODEL,
+                        messages: [{ role: 'user', content: prompt }],
+                        max_tokens: 64000,
+                        temperature: 0.5,
+                        stream: false
+                    })
+                });
 
+                if (!response.ok) {
+                    const errorData = await response.json();
+                    throw new Error(errorData.error?.message || `HTTP 錯誤! 狀態: ${response.status}`);
+                }
+
+                const data = await response.json();
+                
+                if (!data.choices || data.choices.length === 0 || !data.choices[0].message.content) {
+                    throw new Error('AI 返回的數據格式不正確或為空。');
+                }
+
+                const generatedContent = data.choices[0].message.content;
+                const cleanedHtml = cleanAIResponse(generatedContent);
+
+                if (!cleanedHtml) {
+                    throw new Error('AI 未能生成有效的 HTML 程式碼。');
+                }
+                
+                currentGeneratedHtml = cleanedHtml;
+                displayResult(currentGeneratedHtml);
 
             } catch (error) {
-                console.error('修訂願望時發生錯誤:', error);
-                alert(`修訂失敗: ${error.message}`); // 對於修訂錯誤，使用 alert 更直接
-                hideLoader();
+                console.error('AI 請求失敗:', error);
+                // 在結果頁面顯示錯誤，或者關閉結果頁面後在主頁顯示
+                alert(`抱歉，操作失敗: ${error.message}`);
+                // 如果是初次生成失敗，才隱藏加載動畫回到主頁
+                if (!resultContainer.classList.contains('visible')) {
+                    hideLoader();
+                    showError(`抱歉，操作失敗: ${error.message}`);
+                }
+            } finally {
+                 // 如果結果頁面是可見的（修訂模式），則無論成功失敗都只關閉 loader
+                if (resultContainer.classList.contains('visible')) {
+                     hideLoader(true); //傳入 true 表示不恢復主介面
+                }
             }
         }
         
-        async function fetchAIResponse(prompt) {
-            const response = await fetch(apiUrl, {
-                method: 'POST',
-                headers: {
-                    'Content-Type': 'application/json',
-                    'Authorization': `Bearer ${apiKey}`
-                },
-                body: JSON.stringify({
-                    model: model,
-                    messages: [{ role: 'user', content: prompt }],
-                    max_tokens: 4096,
-                    temperature: 0.5
-                })
-            });
-
-            if (!response.ok) {
-                const errorData = await response.json();
-                throw new Error(errorData.error?.message || `HTTP 錯誤! 狀態: ${response.status}`);
-            }
-
-            const data = await response.json();
-            
-            if (!data.choices || data.choices.length === 0 || !data.choices[0].message.content) {
-                throw new Error('AI 返回的數據格式不正確或為空。');
-            }
-
-            const cleanedHtml = cleanAIResponse(data.choices[0].message.content);
-
-            if (!cleanedHtml) {
-                throw new Error('AI 未能生成有效的 HTML 程式碼。');
-            }
-            
-            return cleanedHtml;
-        }
-        
+        /**
+         * 處理 HTML 文件下載
+         */
         function handleHtmlDownload() {
             if (!currentGeneratedHtml) {
                 alert('沒有可下載的內容。');
                 return;
             }
-            const blob = new Blob([currentGeneratedHtml], { type: 'text/html' });
+            const blob = new Blob([currentGeneratedHtml], { type: 'text/html;charset=utf-8' });
             const url = URL.createObjectURL(blob);
             const a = document.createElement('a');
             a.href = url;
@@ -879,8 +801,10 @@ Now, process the revision request and generate the updated HTML application.
       
         // --- UI 控制函數 ---
         
-        function showLoader() {
+        function showLoader(text = '正在實現願望...') {
+            document.querySelector('.loader-text').textContent = text;
             loader.classList.add('active');
+            // 如果結果頁面還沒顯示，才模糊主介面
             if (!resultContainer.classList.contains('visible')) {
                 mainInterface.style.transition = 'opacity 0.5s ease, filter 0.5s ease';
                 mainInterface.style.opacity = '0.5';
@@ -888,9 +812,10 @@ Now, process the revision request and generate the updated HTML application.
             }
         }
 
-        function hideLoader() {
+        function hideLoader(isRevision = false) {
             loader.classList.remove('active');
-             if (!resultContainer.classList.contains('visible')) {
+            // 如果不是修訂模式（即初次生成），才恢復主介面
+            if (!isRevision) {
                 mainInterface.style.opacity = '1';
                 mainInterface.style.filter = 'none';
             }
@@ -906,8 +831,17 @@ Now, process the revision request and generate the updated HTML application.
             errorMessage.classList.remove('visible');
             wishInput.style.borderColor = '';
         }
-        
-        function updateResultDisplay(htmlContent) {
+
+        function displayResult(htmlContent) {
+            // 如果是修訂，直接更新 iframe 內容即可
+            const existingIframe = toolOutput.querySelector('iframe');
+            if (existingIframe) {
+                existingIframe.srcdoc = htmlContent;
+                // 不需要執行顯示/隱藏動畫
+                return;
+            }
+
+            // --- 以下是初次顯示的邏輯 ---
             toolOutput.innerHTML = ''; 
             const iframe = document.createElement('iframe');
             iframe.style.width = '100%';
@@ -916,13 +850,9 @@ Now, process the revision request and generate the updated HTML application.
             iframe.setAttribute('sandbox', 'allow-scripts allow-same-origin allow-forms allow-popups');
             iframe.srcdoc = htmlContent;
             toolOutput.appendChild(iframe);
-            hideLoader();
-        }
-
-        function displayResult(htmlContent) {
-            updateResultDisplay(htmlContent);
             
             setTimeout(() => {
+                hideLoader();
                 mainInterface.style.transition = 'opacity 0.5s, transform 0.5s';
                 mainInterface.style.opacity = '0';
                 mainInterface.style.transform = 'scale(0.9)';
@@ -946,25 +876,15 @@ Now, process the revision request and generate the updated HTML application.
                     wishInput.value = '';
                     toolOutput.innerHTML = '';
                     currentGeneratedHtml = '';
-                    originalUserWish = '';
                 }, 50);
             }, 500);
-        }
-        
-        function showRevisionModal() {
-            revisionInput.value = '';
-            revisionOverlay.classList.add('visible');
-            revisionInput.focus();
-        }
-
-        function hideRevisionModal() {
-            revisionOverlay.classList.remove('visible');
         }
         
         function cleanAIResponse(response) {
             const match = response.match(/```html\s*([\s\S]*?)\s*```|([\s\S]*)/);
             let content = match ? (match[1] || match[2] || '') : '';
             content = content.trim();
+
             if (content.toLowerCase().startsWith('<!doctype html')) {
                 return content;
             }
@@ -972,23 +892,16 @@ Now, process the revision request and generate the updated HTML application.
         }
 
         // 按鈕漣漪效果
-        document.querySelectorAll('.wish-button').forEach(button => {
-            button.addEventListener('click', function(e) {
-                const rect = e.currentTarget.getBoundingClientRect();
-                const x = e.clientX - rect.left;
-                const y = e.clientY - rect.top;
-                
-                const ripples = document.createElement('span');
-                ripples.className = 'ripple';
-                ripples.style.left = x + 'px';
-                ripples.style.top = y + 'px';
-                
-                this.appendChild(ripples);
-
-                setTimeout(() => {
-                    ripples.remove();
-                }, 800);
-            });
+        wishButton.addEventListener('click', function(e) {
+            const rect = e.currentTarget.getBoundingClientRect();
+            const x = e.clientX - rect.left;
+            const y = e.clientY - rect.top;
+            const ripples = document.createElement('span');
+            ripples.className = 'ripple';
+            ripples.style.left = x + 'px';
+            ripples.style.top = y + 'px';
+            this.appendChild(ripples);
+            setTimeout(() => ripples.remove(), 800);
         });
     });
     </script>
