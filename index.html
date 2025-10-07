@@ -3,7 +3,7 @@
 <head>
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
-<title>許願池 (專業修訂版 v2)</title>
+<title>許願池</title>
 <style>
 /* 
 ==========================================================================
@@ -498,7 +498,8 @@ left: 0;
 width: 100%;
 height: 100%;
 pointer-events: none;
-background: url('data:image/svg+xml;base64,PHN2ZyB4bWxucz0iaHR0cDovL3d3dy53My5vcmcvMjAwMC9zdmciIHdpZHRoPSIzMDAiIGhlaWdodD0iMzAwIj48ZmlsdGVyIGlkPSJub2lzZSI+PGZlVHVyYnVsZW5jZSB0eXBlPSJmcmFjdGFsTm9pc2UiIGJhc2VGcmVxdWVuY3k9IjAuOCIgbnVtT2N0YXZlcz0iMyIgc3RpdGNoVGlsZXM9InN0aXRjaCIvPjwvZmlsdGVyPjxyZWN0IHdpZHRoPSIzMDAiIGhlaWdodD0iMzAwIiBmaWx0ZXI9InVybCgjbnoaXNlKSIgb3BhY2l0eT0iMC4wMiIvPjwvc3ZnPg==');
+/* [錯誤修復]：修正了此處的 Base64 編碼，解決 net::ERR_INVALID_URL 錯誤。*/
+background: url('data:image/svg+xml;base64,PHN2ZyB4bWxucz0iaHR0cDovL3d3dy53My5vcmcvMjAwMC9zdmciIHdpZHRoPSIzMDAiIGhlaWdodD0iMzAwIj48ZmlsdGVyIGlkPSJub2lzZSI+PGZlVHVyYnVsZW5jZSB0eXBlPSJmcmFjdGFsTm9pc2UiIGJhc2VGcmVxdWVuY3k9IjAuOCIgbnVtT2N0YXZlcz0iMyIgc3RpdGNoVGlsZXM9InN0aXRjaCIvPjwvZmlsdGVyPjxyZWN0IHdpZHRoPSIzMDAiIGhlaWdodD0iMzAwIiBmaWx0ZXI9InVybCgjbm9pc2UpIiBvcGFjaXR5PSIwLjAyIi8+PC9zdmc+');
 z-index: -2;
 opacity: 0.5;
 }
@@ -612,9 +613,10 @@ flex-direction: column;
 <script>
 // ==========================================================================
 // 侘寂風格許願工具核心 JavaScript
-// 作者：世界頂尖的編程師 (智能 Prompt 優化修訂版 v2)
+// 作者：世界頂尖的編程師 (智能 Prompt 優化修訂版 v2.1)
 // 功能：捕捉願望，先呼叫AI優化成具體指令，再呼叫AI根據該指令生成工具。
 // v2 更新：在修訂時傳入完整HTML上下文，強制AI保留原有設計。
+// v2.1 更新：修復了 API 變數引用錯誤和 CSS SVG 編碼錯誤。
 // ==========================================================================
 
 document.addEventListener('DOMContentLoaded', () => {
@@ -640,10 +642,11 @@ const cancelRevisionButton = document.getElementById('cancel-revision-button');
 let currentGeneratedHtml = '';
 let originalUserWish = '';
 
-// --- API 配置 ---
-const apiKey = 'csk-mymr9kekk3t8vn3dmxf6em9jjkhcentdr3h9tj88r3xfpvfe';
-const model = 'qwen-3-235b-a22b-instruct-2507';
-const apiUrl = 'https://api.cerebras.ai/v1/chat/completions';
+ // --- API 配置 ---
+const API_KEYS = ["sk-p-9-aIT4kSvvL_l4HEAReA"];
+let currentApiKeyIndex = 0;
+const API_URL = "https://chatapi.akash.network/api/v1/chat/completions";
+const MODEL = "Qwen3-235B-A22B-Instruct-2507-FP8";
 
 // ==========================================================================
 // Prompt 工程：指令生成器
@@ -737,7 +740,7 @@ const createRevisionOptimizationPrompt = (originalWish, revisionRequest) => {
  * [AI調用第二步 - 修訂流程] 創建用於 "執行修訂" 的超級指令
  * =========================================================================
  * == ✨✨✨ 關鍵修改點 ✨✨✨ ==
- * 這個Prompt現在接收 `existingHtml` 作為最重要的上下文。
+ * 這個Prompt現在接收 \`existingHtml\` 作為最重要的上下文。
  * 它用極其嚴格的規則，命令AI必須保留現有設計，只進行外科手術式的修改。
  * =========================================================================
  */
@@ -877,17 +880,20 @@ async function handleRevisionSubmission() {
 }
 
 async function fetchAIResponse(prompt) {
-    const response = await fetch(apiUrl, {
+    // [錯誤修復]：修正了 API 相關變數的引用，使其與頂部定義的常數一致。
+    const apiKey = API_KEYS[currentApiKeyIndex];
+    
+    const response = await fetch(API_URL, {
         method: 'POST',
         headers: {
             'Content-Type': 'application/json',
             'Authorization': `Bearer ${apiKey}`
         },
         body: JSON.stringify({
-            model: model,
+            model: MODEL,
             messages: [{ role: 'user', content: prompt }],
-            max_tokens: 4096, // 保持足夠的 token 額度
-            temperature: 0.3 // 降低一點溫度，讓修訂更可控
+            max_tokens: 4096,
+            temperature: 0.3
         })
     });
 
