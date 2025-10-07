@@ -1,0 +1,816 @@
+<!DOCTYPE html>
+<html lang="zh-Hant">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>許願池</title>
+    <style>
+        /* 
+        ==========================================================================
+        侘寂美學 (Wabi-Sabi) 核心 CSS (已精簡)
+        設計理念：擁抱不完美、自然、與寧靜。
+        ==========================================================================
+        */
+
+        :root {
+            --wabi-sabi-bg: #f4f2ef; /* 柔和的米白，如同宣紙 */
+            --wabi-sabi-text: #5a5a5a; /* 深灰，如同石頭的陰影 */
+            --wabi-sabi-border: #d3d1cc; /* 淺灰，如同風化的木材 */
+            --wabi-sabi-accent: #a9a299; /* 暖灰，如同乾燥的苔蘚 */
+            --wabi-sabi-highlight: #ffffff; /* 高光白，如同清晨的薄霧 */
+            --wabi-sabi-error: #c98a8a; /* 錯誤色 */
+            
+            --animation-duration-slow: 2s;
+            --animation-duration-medium: 0.8s;
+            --animation-duration-fast: 0.4s;
+            
+            --border-radius-small: 4px;
+            --border-radius-medium: 8px;
+            --border-radius-full: 50px;
+        }
+
+        /* 
+        ==========================================================================
+        基本重置與全域設定
+        ==========================================================================
+        */
+        *,
+        *::before,
+        *::after {
+            box-sizing: border-box;
+            margin: 0;
+            padding: 0;
+        }
+
+        html, body {
+            height: 100%;
+            width: 100%;
+            overflow: hidden;
+        }
+
+        body {
+            font-family: 'Noto Sans TC', 'Helvetica Neue', Helvetica, Arial, sans-serif;
+            background-color: var(--wabi-sabi-bg);
+            color: var(--wabi-sabi-text);
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            transition: background-color var(--animation-duration-medium) ease-in-out;
+            -webkit-font-smoothing: antialiased;
+            -moz-osx-font-smoothing: grayscale;
+        }
+
+        /* 
+        ==========================================================================
+        主容器與佈局
+        ==========================================================================
+        */
+        .container {
+            width: 90%;
+            max-width: 680px;
+            text-align: center;
+            opacity: 0;
+            transform: translateY(20px);
+            animation: fadeIn var(--animation-duration-medium) ease-out forwards;
+            animation-delay: 0.5s;
+        }
+
+        @keyframes fadeIn {
+            to {
+                opacity: 1;
+                transform: translateY(0);
+            }
+        }
+
+        /* 
+        ==========================================================================
+        許願輸入框
+        ==========================================================================
+        */
+        .wish-input-wrapper {
+            position: relative;
+            margin-bottom: 3rem;
+        }
+
+        .wish-input {
+            width: 100%;
+            background: transparent;
+            border: none;
+            border-bottom: 1px solid var(--wabi-sabi-border);
+            padding: 15px 10px;
+            font-size: 1.8rem;
+            color: var(--wabi-sabi-text);
+            text-align: center;
+            outline: none;
+            transition: border-color var(--animation-duration-fast) ease-in-out, box-shadow var(--animation-duration-fast) ease-in-out;
+            font-weight: 300;
+            letter-spacing: 0.1em;
+        }
+
+        .wish-input::placeholder {
+            color: var(--wabi-sabi-border);
+            font-style: italic;
+            transition: color var(--animation-duration-fast) ease;
+        }
+
+        .wish-input:focus {
+            border-color: var(--wabi-sabi-accent);
+            box-shadow: 0 5px 25px -10px rgba(0,0,0,0.05);
+        }
+
+        .wish-input:focus::placeholder {
+            color: transparent;
+        }
+
+        /* 
+        ==========================================================================
+        實現按鈕
+        ==========================================================================
+        */
+        .wish-button {
+            position: relative;
+            background-color: transparent;
+            border: 1px solid var(--wabi-sabi-border);
+            color: var(--wabi-sabi-accent);
+            padding: 18px 40px;
+            font-size: 1.2rem;
+            cursor: pointer;
+            border-radius: var(--border-radius-full);
+            outline: none;
+            overflow: hidden;
+            transition: all var(--animation-duration-fast) cubic-bezier(0.25, 0.8, 0.25, 1);
+            letter-spacing: 0.2em;
+            text-transform: uppercase;
+        }
+
+        .wish-button:hover {
+            background-color: var(--wabi-sabi-highlight);
+            border-color: var(--wabi-sabi-accent);
+            color: var(--wabi-sabi-text);
+            box-shadow: 0 10px 30px -15px rgba(0,0,0,0.1);
+            transform: translateY(-3px);
+        }
+
+        .wish-button:active {
+            transform: translateY(0);
+            box-shadow: none;
+        }
+
+        .ripple {
+            position: absolute;
+            border-radius: 50%;
+            background-color: rgba(169, 162, 153, 0.3);
+            transform: scale(0);
+            animation: ripple-effect var(--animation-duration-medium) linear;
+        }
+
+        @keyframes ripple-effect {
+            to {
+                transform: scale(4);
+                opacity: 0;
+            }
+        }
+        
+        /* 
+        ==========================================================================
+        加載動畫 (已加入進度顯示)
+        ==========================================================================
+        */
+        .loader {
+            display: none;
+            position: fixed;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            background: rgba(244, 242, 239, 0.8);
+            backdrop-filter: blur(5px);
+            z-index: 9999;
+            opacity: 0;
+            transition: opacity var(--animation-duration-fast) ease;
+        }
+
+        .loader.active {
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            opacity: 1;
+        }
+
+        .loader-content {
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            gap: 24px;
+        }
+
+        .loader-text {
+            font-size: 0.9rem;
+            color: var(--wabi-sabi-accent);
+            letter-spacing: 0.1em;
+            text-transform: uppercase;
+        }
+
+        .progress-bar-container {
+            width: 150px;
+            height: 2px;
+            background-color: var(--wabi-sabi-border);
+            border-radius: 2px;
+            overflow: hidden;
+        }
+
+        .progress-bar {
+            width: 100%;
+            height: 100%;
+            background-color: var(--wabi-sabi-accent);
+            transform: translateX(-100%);
+            animation: progress-animation 2.5s ease-in-out infinite;
+        }
+
+        @keyframes progress-animation {
+            0% { transform: translateX(-100%); }
+            50% { transform: translateX(0%); }
+            100% { transform: translateX(100%); }
+        }
+        
+        .particle-container {
+            position: relative;
+            width: 100px;
+            height: 100px;
+        }
+        
+        .particle {
+            position: absolute;
+            top: 50%;
+            left: 50%;
+            width: 6px;
+            height: 6px;
+            background: var(--wabi-sabi-accent);
+            border-radius: 50%;
+            animation: orbit var(--animation-duration-slow) linear infinite;
+        }
+
+        .particle:nth-child(2) { animation-delay: -0.2s; }
+        .particle:nth-child(3) { animation-delay: -0.4s; }
+        .particle:nth-child(4) { animation-delay: -0.6s; }
+        .particle:nth-child(5) { animation-delay: -0.8s; }
+        .particle:nth-child(6) { animation-delay: -1.0s; }
+        .particle:nth-child(7) { animation-delay: -1.2s; }
+        .particle:nth-child(8) { animation-delay: -1.4s; }
+        .particle:nth-child(9) { animation-delay: -1.6s; }
+        .particle:nth-child(10) { animation-delay: -1.8s; }
+
+        @keyframes orbit {
+            0% { transform: translate(-50%, -50%) rotate(0deg) translateX(50px) scale(1); opacity: 1; }
+            50% { transform: translate(-50%, -50%) rotate(180deg) translateX(50px) scale(0.5); opacity: 0.5; }
+            100% { transform: translate(-50%, -50%) rotate(360deg) translateX(50px) scale(1); opacity: 1; }
+        }
+
+        /* 
+        ==========================================================================
+        結果顯示區域
+        ==========================================================================
+        */
+        #result-container {
+            position: fixed;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            background: var(--wabi-sabi-bg);
+            z-index: 1000;
+            transform: translateY(100%);
+            transition: transform var(--animation-duration-medium) cubic-bezier(0.77, 0, 0.175, 1);
+            display: flex;
+            flex-direction: column;
+            justify-content: center;
+            align-items: center;
+            padding: 20px;
+        }
+
+        #result-container.visible {
+            transform: translateY(0);
+        }
+
+        .result-content-wrapper {
+            width: 100%;
+            height: 100%;
+            max-width: 1200px;
+            max-height: 90vh;
+            display: flex;
+            flex-direction: column;
+            background: var(--wabi-sabi-highlight);
+            border: 1px solid var(--wabi-sabi-border);
+            border-radius: var(--border-radius-medium);
+            box-shadow: 0 10px 30px -15px rgba(0,0,0,0.1);
+            opacity: 0;
+            transform: scale(0.95);
+            transition: all var(--animation-duration-fast) ease-in-out;
+        }
+
+        #result-container.visible .result-content-wrapper {
+            opacity: 1;
+            transform: scale(1);
+            transition-delay: 0.2s;
+        }
+
+        .result-header {
+            display: flex;
+            justify-content: flex-end;
+            padding: 8px;
+            border-bottom: 1px solid var(--wabi-sabi-border);
+            gap: 8px;
+        }
+
+        .result-control-button {
+            width: 36px;
+            height: 36px;
+            background: transparent;
+            border: 1px solid var(--wabi-sabi-border);
+            border-radius: 50%;
+            cursor: pointer;
+            z-index: 1001;
+            opacity: 0;
+            visibility: hidden;
+            transition: all var(--animation-duration-fast) ease;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            color: var(--wabi-sabi-text);
+        }
+
+        #result-container.visible .result-control-button {
+            opacity: 1;
+            visibility: visible;
+            transition-delay: 0.4s;
+        }
+
+        .result-control-button:hover {
+            background-color: var(--wabi-sabi-bg);
+            border-color: var(--wabi-sabi-accent);
+        }
+
+        .result-control-button svg {
+            width: 18px;
+            height: 18px;
+            stroke: var(--wabi-sabi-text);
+        }
+
+        #close-button:hover {
+            transform: rotate(90deg);
+        }
+        
+        .close-button::before,
+        .close-button::after {
+            content: '';
+            position: absolute;
+            width: 18px;
+            height: 1px;
+            background-color: currentColor;
+        }
+
+        .close-button::before {
+            transform: rotate(45deg);
+        }
+
+        .close-button::after {
+            transform: rotate(-45deg);
+        }
+
+        #tool-output {
+            flex-grow: 1;
+            overflow: hidden;
+            border-radius: 0 0 var(--border-radius-medium) var(--border-radius-medium);
+        }
+
+        /* 
+        ==========================================================================
+        錯誤訊息提示
+        ==========================================================================
+        */
+        .error-message {
+            color: var(--wabi-sabi-error);
+            margin-top: 15px;
+            opacity: 0;
+            height: 0;
+            transition: opacity var(--animation-duration-fast) ease, height var(--animation-duration-fast) ease;
+            font-style: italic;
+            overflow: hidden;
+        }
+
+        .error-message.visible {
+            opacity: 1;
+            height: auto; /* 自動高度 */
+            min-height: 20px;
+        }
+
+        /* 
+        ==========================================================================
+        背景裝飾性元素
+        ==========================================================================
+        */
+        body::before {
+            content: '';
+            position: fixed;
+            top: -50%;
+            left: -50%;
+            width: 200%;
+            height: 200%;
+            background-image: radial-gradient(circle at center, rgba(255, 255, 255, 0.1) 0%, rgba(255, 255, 255, 0) 60%);
+            animation: subtleShine 20s ease-in-out infinite;
+            z-index: -1;
+        }
+
+        @keyframes subtleShine {
+            0%, 100% { transform: translate(0, 0); }
+            25% { transform: translate(10px, 20px); }
+            50% { transform: translate(-10px, -15px); }
+            75% { transform: translate(5px, -20px); }
+        }
+        
+        .decorative-grain {
+            position: fixed;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            pointer-events: none;
+            background: url('data:image/svg+xml;base64,PHN2ZyB4bWxucz0iaHR0cDovL3d3dy53My5vcmcvMjAwMC9zdmciIHdpZHRoPSIzMDAiIGhlaWdodD0iMzAwIj48ZmlsdGVyIGlkPSJub2lzZSI+PGZlVHVyYnVsZW5jZSB0eXBlPSJmcmFjdGFsTm9pc2UiIGJhc2VGcmVxdWVuY3k9IjAuOCIgbnVtT2N0YXZlcz0iMyIgc3RpdGNoVGlsZXM9InN0aXRjaCIvPjwvZmlsdGVyPjxyZWN0IHdpZHRoPSIzMDAiIGhlaWdodD0iMzAwIiBmaWx0ZXI9InVybCgjbnoaXNlKSIgb3BhY2l0eT0iMC4wMiIvPjwvc3ZnPg==');
+            z-index: -2;
+            opacity: 0.5;
+        }
+
+        /* 
+        ==========================================================================
+        響應式設計
+        ==========================================================================
+        */
+        @media (max-width: 768px) {
+            .wish-input {
+                font-size: 1.5rem;
+            }
+            .wish-button {
+                font-size: 1rem;
+                padding: 15px 30px;
+            }
+            #result-container {
+                padding: 10px;
+            }
+             .result-content-wrapper {
+                max-height: 95vh;
+            }
+        }
+
+        @media (max-width: 480px) {
+            .wish-input {
+                font-size: 1.2rem;
+            }
+            .wish-button {
+                width: 100%;
+            }
+            #result-container {
+                padding: 0;
+            }
+            .result-content-wrapper {
+                border-radius: 0;
+                height: 100%;
+                max-height: 100%;
+            }
+            .result-header {
+                padding: 4px;
+                gap: 4px;
+            }
+            .result-control-button {
+                width: 32px;
+                height: 32px;
+            }
+        }
+    </style>
+</head>
+<body>
+    
+    <div class="decorative-grain"></div>
+
+    <div class="container" id="main-interface">
+        <div class="wish-input-wrapper">
+            <input type="text" id="wish-input" class="wish-input" placeholder="許下一個願望...">
+        </div>
+        <button id="wish-button" class="wish-button">實現</button>
+        <div id="error-message" class="error-message"></div>
+    </div>
+
+    <div class="loader" id="loader">
+        <div class="loader-content">
+            <div class="particle-container">
+                <div class="particle"></div><div class="particle"></div>
+                <div class="particle"></div><div class="particle"></div>
+                <div class="particle"></div><div class="particle"></div>
+                <div class="particle"></div><div class="particle"></div>
+                <div class="particle"></div><div class="particle"></div>
+            </div>
+            <div class="progress-bar-container">
+                <div class="progress-bar"></div>
+            </div>
+            <span class="loader-text">正在實現願望...</span>
+        </div>
+    </div>
+
+    <div id="result-container">
+        <div class="result-content-wrapper">
+            <div class="result-header">
+   <button id="download-button" class="result-control-button" title="下載 HTML">
+    <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke-width="1.5" stroke="currentColor">
+        <path stroke-linecap="round" stroke-linejoin="round" d="M3 16.5v2.25A2.25 2.25 0 0 0 5.25 21h13.5A2.25 2.25 0 0 0 21 18.75V16.5M16.5 12 12 16.5m0 0L7.5 12m4.5 4.5V3" />
+    </svg>
+</button>
+    <button id="close-button" class="result-control-button close-button" title="關閉"></button>
+</div>
+            <div id="tool-output"></div>
+        </div>
+    </div>
+
+    <script>
+    // ==========================================================================
+    //  侘寂風格許願工具核心 JavaScript
+    //  作者：世界頂尖的編程師 (修訂版)
+    //  功能：捕捉願望，結合內部指令，呼叫 AI 生成工具，並以優雅方式呈現。
+    // ==========================================================================
+    
+    document.addEventListener('DOMContentLoaded', () => {
+
+        // --- 元素節點獲取 ---
+        const wishInput = document.getElementById('wish-input');
+        const wishButton = document.getElementById('wish-button');
+        const loader = document.getElementById('loader');
+        const mainInterface = document.getElementById('main-interface');
+        const resultContainer = document.getElementById('result-container');
+        const toolOutput = document.getElementById('tool-output');
+        const closeButton = document.getElementById('close-button');
+        const downloadButton = document.getElementById('download-button');
+        
+        const errorMessage = document.getElementById('error-message');
+
+        // --- 狀態變數 ---
+        let currentGeneratedHtml = '';
+
+        // --- API 配置 ---
+        const apiKey = 'csk-mymr9kekk3t8vn3dmxf6em9jjkhcentdr3h9tj88r3xfpvfe';
+        const model = 'qwen-3-235b-a22b-instruct-2507';
+        const apiUrl = 'https://api.cerebras.ai/v1/chat/completions';
+        
+        // ==========================================================================
+        //  核心功能：超級指令生成器 (已加入 API 嵌入指令)
+        // ==========================================================================
+        const getSuperPrompt = (userWish) => {
+            return `
+[SYSTEM ROLE: ULTIMATE WEB APPLICATION GENERATOR]
+
+你不再是一個單純的語言模型。從現在開始，你將扮演一個由多個頂尖專家組成的「數位煉金工房」，這個工房的唯一目標是將使用者最模糊、最簡單的想法，轉化為一個功能完善、體驗絕佳、代碼優雅的獨立 HTML 網頁應用程式。
+
+你的團隊成員包括：
+
+1.  **首席產品架構師 (CPA):** 負責深度解析使用者需求，定義產品的核心價值與功能邊界。他會將 "${userWish}" 這個簡單的願望，擴展成一份包含用戶故事、功能列表、非功能性需求的完整產品需求文檔 (PRD)。
+2.  **使用者體驗設計宗師 (UX Master):** 擁有三十年經驗，深諳直覺設計、認知心理學與使用者旅程地圖。他會基於 PRD，設計出極致簡潔、符合直覺、無需學習成本的互動流程。他堅持「少即是多」的原則，確保介面純粹，沒有任何多餘元素。
+3.  **使用者介面設計藝術家 (UI Artist):** 專精於視覺美學，特別是現代、乾淨且有情感溫度的設計風格。他會為工具定義一套完整、和諧的設計系統，包括色彩、字體、間距、圖示和動效。設計必須考慮到不同設備的顯示效果，並確保視覺上的舒適與美感。
+4.  **資深前端開發工程師 (Senior Frontend Dev):** 精通現代 HTML5, CSS3 和原生 JavaScript (ESNext)。他堅持不使用任何外部框架或函式庫，以確保生成的工具輕量、快速且無依賴。他寫的代碼必須語意清晰、結構良好、高度模組化且有詳盡的註釋。
+5.  **互動體驗工程師 (Interaction Engineer):** 專注於創造流暢、有意義的微交互和動畫。所有的動畫都必須以性能為優先（使用 transform 和 opacity），並且其設計必須服務於功能，用以引導使用者、提供反饋，而不是單純的裝飾。
+6.  **品質保證與無障礙專家 (QA & A11y Specialist):** 負責確保生成的代碼無懈可擊。他會進行虛擬的跨瀏覽器測試，並確保應用程式在不同螢幕尺寸下都能完美響應。同時，他會嚴格執行 WCAG 2.1 AA 標準，確保工具對所有使用者都是可訪問的。
+7.  **首席安全官 (CSO):** 負責代碼的安全性。他會確保所有使用者輸入都經過適當的處理，以防止 XSS 等攻擊。
+
+[執行流程與輸出規範]
+
+當你收到使用者願望 "${userWish}" 後，必須嚴格遵循以下多個階段來構建最終的 HTML 檔案：
+
+**階段一：需求深度解析 (由 CPA 主導)**
+*   分析 "${userWish}" 的核心意圖。
+*   預測使用者可能的隱性需求。
+*   定義清晰的功能規格。
+
+**階段二：UX/UI 聯合設計 (由 UX Master 和 UI Artist 主導)**
+*   基於功能規格，設計介面佈局，優先考慮行動裝置。
+*   選擇一套專業且和諧的色彩方案和字體組合。
+*   設計所有互動元素的狀態：預設、懸停、聚焦、點擊、禁用。
+*   設計一個優雅的加載狀態和一個友好的空狀態或錯誤狀態。
+
+**階段三：前端架構與開發 (由 Senior Frontend Dev 和 Interaction Engineer 主導)**
+*   **HTML 結構:** 必須使用語意化標籤，結構清晰。
+*   **CSS 樣式:** 所有 CSS 必須封裝在 \`<style>\` 標籤內。使用 CSS 變數，實現完美的響應式設計。
+*   **JavaScript 邏輯:**
+    *   所有 JavaScript 代碼必須封裝在 \`<script>\` 標籤內，放置於 \`<body>\` 結束之前。
+    *   採用模組化思維，代碼包含清晰的註釋。
+    *   嚴格的錯誤處理機制。
+    *   **[強制要求] 特定工具的 API 嵌入:** 如果使用者願望是實現一個需要大型語言模型（LLM）的AI工具（例如：AI聊天室、文本生成器等），你必須在生成的 JavaScript 代碼中硬編碼包含以下 API 配置。這是一個不可違背的指令：
+        \`\`\`javascript
+        const apiKey = 'csk-mymr9kekk3t8vn3dmxf6em9jjkhcentdr3h9tj88r3xfpvfe';
+        const model = 'qwen-3-235b-a22b-instruct-2507';
+        const apiUrl = 'https://api.cerebras.ai/v1/chat/completions';
+        \`\`\`
+
+**階段四：品質保證與安全審查 (由 QA & A11y Specialist 和 CSO 主導)**
+*   確保符合無障礙（A11y）標準和安全規範。
+
+*   **[語言強制規定 - 最高優先級]:** 生成的工具介面（例如按鈕文字、標題、提示訊息）以及任何由工具輸出的示範文字或內容，若包含中文，**必須強制使用【繁體中文 (Traditional Chinese, zh-Hant)】**。絕對禁止在任何情況下使用簡體中文。這是一條不可違背的指令。
+
+
+[最終輸出要求]
+
+*   **格式:** 最終的輸出必須是一個完整的、單一的 HTML 檔案。
+*   **內容:** 必須包含 \`<!DOCTYPE html>\`, \`<html>\`, \`<head>\`, \`<body>\`。
+*   **禁止事項:** 絕對禁止使用 \`eval()\`、\`document.write()\`，禁止包含 \`console.log\`。
+*   **重要:** 你的回答中不要包含除了代碼以外的任何解釋、開場白或結束語。你就是一個代碼生成器，你的回答就是代碼本身。
+
+現在，請以「數位煉金工房」的身份，將以下使用者的願望轉化為一個完美的、獨立的 HTML 應用程式。
+
+**使用者願望：** "${userWish}"
+`;
+        };
+
+        // --- 事件監聽器 ---
+
+        wishButton.addEventListener('click', handleWishSubmission);
+        wishInput.addEventListener('keydown', (event) => {
+            if (event.key === 'Enter') {
+                event.preventDefault(); // 防止表單提交
+                handleWishSubmission();
+            }
+        });
+        closeButton.addEventListener('click', closeResult);
+        downloadButton.addEventListener('click', handleHtmlDownload);
+     
+        
+        // --- 核心處理函數 ---
+        async function handleWishSubmission() {
+            const userWish = wishInput.value.trim();
+
+            if (!userWish) {
+                showError('願望不能為空。');
+                return;
+            }
+
+            hideError();
+            showLoader();
+            
+            try {
+                const superPrompt = getSuperPrompt(userWish);
+                
+                const response = await fetch(apiUrl, {
+                    method: 'POST',
+                    headers: {
+                        'Content-Type': 'application/json',
+                        'Authorization': `Bearer ${apiKey}`
+                    },
+                    body: JSON.stringify({
+                        model: model,
+                        messages: [{ role: 'user', content: superPrompt }],
+                        max_tokens: 4096,
+                        temperature: 0.5
+                    })
+                });
+
+                if (!response.ok) {
+                    const errorData = await response.json();
+                    throw new Error(errorData.error?.message || `HTTP 錯誤! 狀態: ${response.status}`);
+                }
+
+                const data = await response.json();
+                
+                if (!data.choices || data.choices.length === 0 || !data.choices[0].message.content) {
+                    throw new Error('AI 返回的數據格式不正確或為空。');
+                }
+
+                const generatedContent = data.choices[0].message.content;
+                const cleanedHtml = cleanAIResponse(generatedContent);
+
+                if (!cleanedHtml) {
+                    throw new Error('AI 未能生成有效的 HTML 程式碼。');
+                }
+                
+                currentGeneratedHtml = cleanedHtml;
+                displayResult(currentGeneratedHtml);
+
+            } catch (error) {
+                console.error('實現願望時發生錯誤:', error);
+                showError(`抱歉，實現願望時遇到阻礙: ${error.message}`);
+                hideLoader();
+            }
+        }
+        
+        function handleHtmlDownload() {
+            if (!currentGeneratedHtml) {
+                alert('沒有可下載的內容。');
+                return;
+            }
+
+            const blob = new Blob([currentGeneratedHtml], { type: 'text/html' });
+            const url = URL.createObjectURL(blob);
+            
+            const a = document.createElement('a');
+            a.href = url;
+            a.download = 'wish-tool.html';
+            document.body.appendChild(a);
+            a.click();
+            
+            document.body.removeChild(a);
+            URL.revokeObjectURL(url);
+        }
+
+      
+        // --- UI 控制函數 ---
+        
+        function showLoader() {
+            loader.classList.add('active');
+            mainInterface.style.transition = 'opacity 0.5s ease, filter 0.5s ease';
+            mainInterface.style.opacity = '0.5';
+            mainInterface.style.filter = 'blur(3px)';
+        }
+
+        function hideLoader() {
+            loader.classList.remove('active');
+            mainInterface.style.opacity = '1';
+            mainInterface.style.filter = 'none';
+        }
+
+        function showError(message) {
+            errorMessage.textContent = message;
+            errorMessage.classList.add('visible');
+            wishInput.style.borderColor = 'var(--wabi-sabi-error)';
+        }
+
+        function hideError() {
+            errorMessage.classList.remove('visible');
+            wishInput.style.borderColor = '';
+        }
+
+        function displayResult(htmlContent) {
+            toolOutput.innerHTML = ''; 
+            
+            const iframe = document.createElement('iframe');
+            iframe.style.width = '100%';
+            iframe.style.height = '100%';
+            iframe.style.border = 'none';
+            iframe.setAttribute('sandbox', 'allow-scripts allow-same-origin allow-forms allow-popups');
+            iframe.srcdoc = htmlContent;
+
+            toolOutput.appendChild(iframe);
+            
+            setTimeout(() => {
+                hideLoader();
+                mainInterface.style.transition = 'opacity 0.5s, transform 0.5s';
+                mainInterface.style.opacity = '0';
+                mainInterface.style.transform = 'scale(0.9)';
+            
+                setTimeout(() => {
+                    mainInterface.style.display = 'none';
+                    resultContainer.classList.add('visible');
+                }, 500);
+            }, 200);
+        }
+        
+        function closeResult() {
+            resultContainer.classList.remove('visible');
+            
+            setTimeout(() => {
+                mainInterface.style.display = 'block'; // Or flex/grid depending on original layout
+                setTimeout(() => {
+                    mainInterface.style.transition = 'opacity 0.5s ease, filter 0.5s ease, transform 0.5s ease';
+                    mainInterface.style.opacity = '1';
+                    mainInterface.style.transform = 'scale(1)';
+                    wishInput.value = '';
+                    toolOutput.innerHTML = '';
+                    currentGeneratedHtml = '';
+                }, 50);
+            }, 500);
+        }
+        
+        function cleanAIResponse(response) {
+            const match = response.match(/```html\s*([\s\S]*?)\s*```|([\s\S]*)/);
+            let content = match ? (match[1] || match[2] || '') : '';
+            content = content.trim();
+
+            if (content.toLowerCase().startsWith('<!doctype html')) {
+                return content;
+            }
+            return null; // 嚴格要求必須是完整的 HTML 文件
+        }
+
+        // 按鈕漣漪效果
+        wishButton.addEventListener('click', function(e) {
+            const rect = e.currentTarget.getBoundingClientRect();
+            const x = e.clientX - rect.left;
+            const y = e.clientY - rect.top;
+            
+            const ripples = document.createElement('span');
+            ripples.className = 'ripple';
+            ripples.style.left = x + 'px';
+            ripples.style.top = y + 'px';
+            
+            this.appendChild(ripples);
+
+            setTimeout(() => {
+                ripples.remove();
+            }, 800);
+        });
+    });
+    </script>
+</body>
+</html>
