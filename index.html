@@ -97,7 +97,7 @@
             background: transparent;
             border: none;
             border-bottom: 1px solid var(--wabi-sabi-border);
-            padding: 15px 10px;
+            padding: 15px 60px 15px 10px; /* 增加右邊 padding 給按鈕空間 */
             font-size: 1.8rem;
             color: var(--wabi-sabi-text);
             text-align: center;
@@ -121,6 +121,56 @@
         .wish-input:focus::placeholder {
             color: transparent;
         }
+        
+        /* 
+        ==========================================================================
+        ⭐ AI 切換按鈕 (新增)
+        ==========================================================================
+        */
+        .ai-toggle-button {
+            position: absolute;
+            top: 50%;
+            right: 10px;
+            transform: translateY(-50%);
+            width: 40px;
+            height: 40px;
+            background-color: transparent;
+            border: 1px solid var(--wabi-sabi-border);
+            border-radius: 50%;
+            cursor: pointer;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            outline: none;
+            transition: all var(--animation-duration-fast) ease-in-out;
+        }
+
+        .ai-toggle-button .ai-icon {
+            width: 20px;
+            height: 20px;
+            stroke: var(--wabi-sabi-border); /* 預設狀態，非常低調 */
+            transition: all var(--animation-duration-fast) ease-in-out;
+        }
+
+        .ai-toggle-button:hover {
+            border-color: var(--wabi-sabi-accent);
+        }
+
+        .ai-toggle-button:hover .ai-icon {
+            stroke: var(--wabi-sabi-accent);
+        }
+
+        .ai-toggle-button.active {
+            background-color: var(--wabi-sabi-accent);
+            border-color: var(--wabi-sabi-accent);
+            box-shadow: 0 0 15px rgba(169, 162, 153, 0.5);
+        }
+
+        .ai-toggle-button.active .ai-icon {
+            stroke: var(--wabi-sabi-highlight); /* 點亮狀態 */
+            filter: drop-shadow(0 0 5px var(--wabi-sabi-highlight));
+        }
+
 
         /* 
         ==========================================================================
@@ -527,6 +577,16 @@
         @media (max-width: 480px) {
             .wish-input {
                 font-size: 1.2rem;
+                 padding-right: 50px;
+            }
+            .ai-toggle-button {
+                width: 36px;
+                height: 36px;
+                right: 5px;
+            }
+             .ai-toggle-button .ai-icon {
+                width: 18px;
+                height: 18px;
             }
             .wish-button {
                 width: 100%;
@@ -560,6 +620,12 @@
     <div class="container" id="main-interface">
         <div class="wish-input-wrapper">
             <input type="text" id="wish-input" class="wish-input" placeholder="你想要甚麼工具？">
+            <!-- ⭐ 新增的 AI 切換按鈕 -->
+            <button id="ai-toggle" class="ai-toggle-button" title="切換 AI 功能">
+                <svg class="ai-icon" viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg">
+                    <path d="M12 4V2M12 22v-2M20 12h2M2 12h2M6.314 6.314l-1.414-1.414M19.1 19.1l-1.414-1.414M6.314 17.686l-1.414 1.414M19.1 4.9l-1.414 1.414M12 16a4 4 0 100-8 4 4 0 000 8z" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"/>
+                </svg>
+            </button>
         </div>
         <button id="wish-button" class="wish-button">實現</button>
         <div id="error-message" class="error-message"></div>
@@ -637,9 +703,11 @@
         const revisionInput = document.getElementById('revision-input');
         const submitRevisionButton = document.getElementById('submit-revision-button');
         const cancelRevisionButton = document.getElementById('cancel-revision-button');
+        const aiToggleButton = document.getElementById('ai-toggle'); // ⭐ 新增
 
         // --- 狀態變數 ---
         let currentGeneratedHtml = '';
+        let isAIEnabled = false; // ⭐ 新增: AI 功能開關狀態
 
         // --- API 配置 ---
         const API_KEYS = ["sk-p-9-aIT4kSvvL_l4HEAReA"];
@@ -787,14 +855,29 @@ ${originalHtml}
                 handleRevisionSubmission();
             }
         });
+        
+        // ⭐ 新增: AI 切換按鈕的事件監聽
+        aiToggleButton.addEventListener('click', () => {
+            isAIEnabled = !isAIEnabled;
+            aiToggleButton.classList.toggle('active', isAIEnabled);
+            if (isAIEnabled) {
+                hideError(); // 如果使用者啟用 AI，清除可能存在的錯誤提示
+            }
+        });
 
         
         // --- 核心處理函數 ---
 
         /**
-         * 處理初次許願請求
+         * ⭐ 修改: 處理初次許願請求
          */
         async function handleWishSubmission() {
+            // ⭐ 新增: 檢查 AI 功能是否啟用
+            if (!isAIEnabled) {
+                showError('請先點亮右方的 AI 功能按鈕。');
+                return;
+            }
+
             const userWish = wishInput.value.trim();
             if (!userWish) {
                 showError('願望不能為空。');
