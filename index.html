@@ -156,6 +156,18 @@
             box-shadow: none;
         }
 
+        .wish-button.secondary {
+            background-color: transparent;
+            color: var(--wabi-sabi-accent);
+            border-color: var(--wabi-sabi-border);
+        }
+
+        .wish-button.secondary:hover {
+            background-color: var(--wabi-sabi-bg);
+            border-color: var(--wabi-sabi-accent);
+            color: var(--wabi-sabi-text);
+        }
+
         .ripple {
             position: absolute;
             border-radius: 50%;
@@ -406,6 +418,57 @@
 
         /* 
         ==========================================================================
+        修訂介面 (Revision Interface) 【新增】
+        ==========================================================================
+        */
+        .revision-overlay {
+            position: fixed;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            background: rgba(244, 242, 239, 0.8);
+            backdrop-filter: blur(5px);
+            z-index: 10000;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            opacity: 0;
+            visibility: hidden;
+            transition: opacity var(--animation-duration-fast) ease, visibility 0s var(--animation-duration-fast);
+        }
+
+        .revision-overlay.visible {
+            opacity: 1;
+            visibility: visible;
+            transition: opacity var(--animation-duration-fast) ease, visibility 0s;
+        }
+
+        .revision-modal {
+            width: 90%;
+            max-width: 500px;
+            text-align: center;
+            transform: scale(0.95);
+            transition: transform var(--animation-duration-fast) ease;
+        }
+
+        .revision-overlay.visible .revision-modal {
+            transform: scale(1);
+        }
+
+        .revision-modal .wish-input {
+            font-size: 1.5rem;
+            margin-bottom: 2rem;
+        }
+
+        .revision-actions {
+            display: flex;
+            gap: 1rem;
+            justify-content: center;
+        }
+
+        /* 
+        ==========================================================================
         背景裝飾性元素
         ==========================================================================
         */
@@ -484,6 +547,9 @@
                 width: 32px;
                 height: 32px;
             }
+            .revision-actions {
+                flex-direction: column;
+            }
         }
     </style>
 </head>
@@ -518,26 +584,39 @@
     <div id="result-container">
         <div class="result-content-wrapper">
             <div class="result-header">
-               <button id="revise-button" class="result-control-button" title="修訂 HTML">
-                   <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke-width="1.5" stroke="currentColor">
-                       <path stroke-linecap="round" stroke-linejoin="round" d="m16.862 4.487 1.687-1.688a1.875 1.875 0 1 1 2.652 2.652L6.832 19.82a4.5 4.5 0 0 1-1.897 1.13l-2.685.8.8-2.685a4.5 4.5 0 0 1 1.13-1.897L16.863 4.487Zm0 0L19.5 7.125" />
-                   </svg>
-               </button>
+                <!-- 【修訂】按鈕順序與圖示已更新 -->
                <button id="download-button" class="result-control-button" title="下載 HTML">
                    <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke-width="1.5" stroke="currentColor">
                        <path stroke-linecap="round" stroke-linejoin="round" d="M3 16.5v2.25A2.25 2.25 0 0 0 5.25 21h13.5A2.25 2.25 0 0 0 21 18.75V16.5M16.5 12 12 16.5m0 0L7.5 12m4.5 4.5V3" />
                    </svg>
                </button>
+               <button id="revise-button" class="result-control-button" title="修訂願望">
+                   <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke-width="1.5" stroke="currentColor">
+                       <path stroke-linecap="round" stroke-linejoin="round" d="M16.023 9.348h4.992v-.001M2.985 19.644v-4.992m0 0h4.992m-4.993 0 3.181 3.183a8.25 8.25 0 0 0 11.664 0l3.181-3.183m-4.991-2.691V5.25a2.25 2.25 0 0 0-2.25-2.25h-4.5a2.25 2.25 0 0 0-2.25 2.25v4.992m2.25 0h4.992" />
+                   </svg>
+                </button>
                <button id="close-button" class="result-control-button close-button" title="關閉"></button>
             </div>
             <div id="tool-output"></div>
         </div>
     </div>
+    
+    <!-- 【新增】修訂介面的 HTML 結構 -->
+    <div id="revision-overlay" class="revision-overlay">
+        <div class="revision-modal">
+            <input type="text" id="revision-input" class="wish-input" placeholder="描述你的修訂...">
+            <div class="revision-actions">
+                <button id="submit-revision-button" class="wish-button">優化</button>
+                <button id="cancel-revision-button" class="wish-button secondary">取消</button>
+            </div>
+        </div>
+    </div>
+
 
     <script>
     // ==========================================================================
     //  侘寂風格許願工具核心 JavaScript
-    //  作者：世界頂尖的編程師 (修訂版 v2)
+    //  作者：世界頂尖的編程師 (修訂版 v3)
     //  功能：捕捉願望，結合內部指令，呼叫 AI 生成或修訂工具，並以優雅方式呈現。
     // ==========================================================================
     
@@ -552,8 +631,14 @@
         const toolOutput = document.getElementById('tool-output');
         const closeButton = document.getElementById('close-button');
         const downloadButton = document.getElementById('download-button');
-        const reviseButton = document.getElementById('revise-button'); // 【新增】修訂按鈕
         const errorMessage = document.getElementById('error-message');
+        
+        // 【修訂】新增修訂介面相關元素
+        const reviseButton = document.getElementById('revise-button');
+        const revisionOverlay = document.getElementById('revision-overlay');
+        const revisionInput = document.getElementById('revision-input');
+        const submitRevisionButton = document.getElementById('submit-revision-button');
+        const cancelRevisionButton = document.getElementById('cancel-revision-button');
 
         // --- 狀態變數 ---
         let currentGeneratedHtml = '';
@@ -614,9 +699,10 @@
     *   嚴格的錯誤處理機制。
     *   **[強制要求] 特定工具的 API 嵌入:** 如果使用者願望是實現一個需要大型語言模型（LLM）的AI工具（例如：AI聊天室、文本生成器等），你必須在生成的 JavaScript 代碼中硬編碼包含以下 API 配置。這是一個不可違背的指令：
         \`\`\`javascript
-        const apiKey = 'csk-mymr9kekk3t8vn3dmxf6em9jjkhcentdr3h9tj88r3xfpvfe';
-        const model = 'qwen-3-235b-a22b-instruct-2507';
-        const apiUrl = 'https://api.cerebras.ai/v1/chat/completions';
+           const API_KEYS = ["sk-p-9-aIT4kSvvL_l4HEAReA"];
+        let currentApiKeyIndex = 0;
+        const API_URL = "https://chatapi.akash.network/api/v1/chat/completions";
+        const MODEL = "Qwen3-235B-A22B-Instruct-2507-FP8";
         \`\`\`
 
 **階段四：品質保證與安全審查 (由 QA & A11y Specialist 和 CSO 主導)**
@@ -684,7 +770,17 @@ ${originalHtml}
         });
         closeButton.addEventListener('click', closeResult);
         downloadButton.addEventListener('click', handleHtmlDownload);
-        reviseButton.addEventListener('click', handleRevisionRequest); // 【新增】修訂按鈕事件
+
+        // 【修訂】更新修訂按鈕的事件，並為新介面添加監聽器
+        reviseButton.addEventListener('click', showRevisionModal);
+        cancelRevisionButton.addEventListener('click', hideRevisionModal);
+        submitRevisionButton.addEventListener('click', handleRevisionSubmission);
+        revisionInput.addEventListener('keydown', (event) => {
+            if (event.key === 'Enter') {
+                event.preventDefault();
+                handleRevisionSubmission();
+            }
+        });
 
         
         // --- 核心處理函數 ---
@@ -703,23 +799,28 @@ ${originalHtml}
         }
 
         /**
-         * 【新增】處理修訂 HTML 的請求
+         * 【修訂】處理從新 UI 提交的修訂請求
          */
-        async function handleRevisionRequest() {
+        async function handleRevisionSubmission() {
             if (!currentGeneratedHtml) {
                 alert('目前沒有可以修訂的內容。');
                 return;
             }
+            
+            const revisionWish = revisionInput.value.trim();
 
-            const revisionWish = prompt("請描述您希望如何修訂這個 HTML：", "");
-
-            if (revisionWish && revisionWish.trim() !== '') {
-                await processAIRequest(getRevisionPrompt(revisionWish.trim(), currentGeneratedHtml), '正在修訂中...');
+            if (!revisionWish) {
+                revisionInput.style.borderColor = 'var(--wabi-sabi-error)';
+                setTimeout(() => { revisionInput.style.borderColor = ''; }, 2000);
+                return;
             }
+
+            hideRevisionModal();
+            await processAIRequest(getRevisionPrompt(revisionWish, currentGeneratedHtml), '正在修訂中...');
         }
 
         /**
-         * 【新增】統一處理 AI 請求的通用函數
+         * 統一處理 AI 請求的通用函數
          * @param {string} prompt - 要發送給 AI 的完整指令
          * @param {string} loaderText - 加載時顯示的文字
          */
@@ -764,17 +865,14 @@ ${originalHtml}
 
             } catch (error) {
                 console.error('AI 請求失敗:', error);
-                // 在結果頁面顯示錯誤，或者關閉結果頁面後在主頁顯示
                 alert(`抱歉，操作失敗: ${error.message}`);
-                // 如果是初次生成失敗，才隱藏加載動畫回到主頁
                 if (!resultContainer.classList.contains('visible')) {
                     hideLoader();
                     showError(`抱歉，操作失敗: ${error.message}`);
                 }
             } finally {
-                 // 如果結果頁面是可見的（修訂模式），則無論成功失敗都只關閉 loader
                 if (resultContainer.classList.contains('visible')) {
-                     hideLoader(true); //傳入 true 表示不恢復主介面
+                     hideLoader(true);
                 }
             }
         }
@@ -804,7 +902,6 @@ ${originalHtml}
         function showLoader(text = '正在實現願望...') {
             document.querySelector('.loader-text').textContent = text;
             loader.classList.add('active');
-            // 如果結果頁面還沒顯示，才模糊主介面
             if (!resultContainer.classList.contains('visible')) {
                 mainInterface.style.transition = 'opacity 0.5s ease, filter 0.5s ease';
                 mainInterface.style.opacity = '0.5';
@@ -814,7 +911,6 @@ ${originalHtml}
 
         function hideLoader(isRevision = false) {
             loader.classList.remove('active');
-            // 如果不是修訂模式（即初次生成），才恢復主介面
             if (!isRevision) {
                 mainInterface.style.opacity = '1';
                 mainInterface.style.filter = 'none';
@@ -833,15 +929,12 @@ ${originalHtml}
         }
 
         function displayResult(htmlContent) {
-            // 如果是修訂，直接更新 iframe 內容即可
             const existingIframe = toolOutput.querySelector('iframe');
             if (existingIframe) {
                 existingIframe.srcdoc = htmlContent;
-                // 不需要執行顯示/隱藏動畫
                 return;
             }
 
-            // --- 以下是初次顯示的邏輯 ---
             toolOutput.innerHTML = ''; 
             const iframe = document.createElement('iframe');
             iframe.style.width = '100%';
@@ -879,6 +972,17 @@ ${originalHtml}
                 }, 50);
             }, 500);
         }
+
+        // 【新增】顯示和隱藏修訂介面的函數
+        function showRevisionModal() {
+            revisionInput.value = '';
+            revisionOverlay.classList.add('visible');
+            revisionInput.focus();
+        }
+
+        function hideRevisionModal() {
+            revisionOverlay.classList.remove('visible');
+        }
         
         function cleanAIResponse(response) {
             const match = response.match(/```html\s*([\s\S]*?)\s*```|([\s\S]*)/);
@@ -892,17 +996,23 @@ ${originalHtml}
         }
 
         // 按鈕漣漪效果
-        wishButton.addEventListener('click', function(e) {
-            const rect = e.currentTarget.getBoundingClientRect();
-            const x = e.clientX - rect.left;
-            const y = e.clientY - rect.top;
-            const ripples = document.createElement('span');
-            ripples.className = 'ripple';
-            ripples.style.left = x + 'px';
-            ripples.style.top = y + 'px';
-            this.appendChild(ripples);
-            setTimeout(() => ripples.remove(), 800);
+        document.querySelectorAll('.wish-button').forEach(button => {
+            button.addEventListener('click', function(e) {
+                // 防止在父元素上觸發多次
+                if (e.target !== e.currentTarget) return;
+                
+                const rect = e.currentTarget.getBoundingClientRect();
+                const x = e.clientX - rect.left;
+                const y = e.clientY - rect.top;
+                const ripples = document.createElement('span');
+                ripples.className = 'ripple';
+                ripples.style.left = x + 'px';
+                ripples.style.top = y + 'px';
+                this.appendChild(ripples);
+                setTimeout(() => ripples.remove(), 800);
+            });
         });
+
     });
     </script>
 </body>
