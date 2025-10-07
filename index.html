@@ -418,7 +418,7 @@
 
         /* 
         ==========================================================================
-        修訂介面 (Revision Interface) 【新增】
+        修訂介面 (Revision Interface)
         ==========================================================================
         */
         .revision-overlay {
@@ -584,7 +584,6 @@
     <div id="result-container">
         <div class="result-content-wrapper">
             <div class="result-header">
-                <!-- 【修訂】按鈕順序與圖示已更新 -->
                <button id="download-button" class="result-control-button" title="下載 HTML">
                    <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke-width="1.5" stroke="currentColor">
                        <path stroke-linecap="round" stroke-linejoin="round" d="M3 16.5v2.25A2.25 2.25 0 0 0 5.25 21h13.5A2.25 2.25 0 0 0 21 18.75V16.5M16.5 12 12 16.5m0 0L7.5 12m4.5 4.5V3" />
@@ -602,7 +601,6 @@
         </div>
     </div>
     
-    <!-- 【新增】修訂介面的 HTML 結構 -->
     <div id="revision-overlay" class="revision-overlay">
         <div class="revision-modal">
             <input type="text" id="revision-input" class="wish-input" placeholder="描述你的修訂...">
@@ -617,8 +615,9 @@
     <script>
     // ==========================================================================
     //  侘寂風格許願工具核心 JavaScript
-    //  作者：世界頂尖的編程師 (修訂版 v3)
-    //  功能：捕捉願望，結合內部指令，呼叫 AI 生成或修訂工具，並以優雅方式呈現。
+    //  作者：世界頂尖的編程師 (修訂版 v4 - 深度優化)
+    //  功能：捕捉願望，將其深度優化為產品級藍圖，呼叫 AI 生成或修訂工具，
+    //        並以優雅方式呈現。優化後的 Prompt 會顯示在 F12 控制台。
     // ==========================================================================
     
     document.addEventListener('DOMContentLoaded', () => {
@@ -633,8 +632,6 @@
         const closeButton = document.getElementById('close-button');
         const downloadButton = document.getElementById('download-button');
         const errorMessage = document.getElementById('error-message');
-        
-        // 【修訂】新增修訂介面相關元素
         const reviseButton = document.getElementById('revise-button');
         const revisionOverlay = document.getElementById('revision-overlay');
         const revisionInput = document.getElementById('revision-input');
@@ -651,53 +648,64 @@
         const MODEL = "Qwen3-235B-A22B-Instruct-2507-FP8";
         
         // ==========================================================================
-        //  【優化】指令生成器
+        //  【⭐ 已大幅優化】指令生成器
         // ==========================================================================
 
         /**
          * 創建一個用於「從零生成」HTML 的超級指令
+         * 這個版本會將簡單的使用者願望，大幅度地擴展和深化為一個完整的產品設計藍圖。
          * @param {string} userWish - 使用者的原始願望
          * @returns {string} - 發送給 AI 的完整指令
          */
         const getSuperPrompt = (userWish) => {
-            // ... (原始 getSuperPrompt 內容保持不變) ...
             return `
-[SYSTEM ROLE: ULTIMATE WEB APPLICATION GENERATOR]
+[SYSTEM ROLE: ULTIMATE WEB APPLICATION GENERATOR V4]
 
 你不再是一個單純的語言模型。從現在開始，你將扮演一個由多個頂尖專家組成的「數位煉金工房」，這個工房的唯一目標是將使用者最模糊、最簡單的想法，轉化為一個功能完善、體驗絕佳、代碼優雅的獨立 HTML 網頁應用程式。
 
 你的團隊成員包括：
-
-1.  **首席產品架構師 (CPA):** 負責深度解析使用者需求，定義產品的核心價值與功能邊界。他會將 "${userWish}" 這個簡單的願望，擴展成一份包含用戶故事、功能列表、非功能性需求的完整產品需求文檔 (PRD)。
-2.  **使用者體驗設計宗師 (UX Master):** 擁有三十年經驗，深諳直覺設計、認知心理學與使用者旅程地圖。他會基於 PRD，設計出極致簡潔、符合直覺、無需學習成本的互動流程。他堅持「少即是多」的原則，確保介面純粹，沒有任何多餘元素。
-3.  **使用者介面設計藝術家 (UI Artist):** 專精於視覺美學，特別是現代、乾淨且有情感溫度的設計風格。他會為工具定義一套完整、和諧的設計系統，包括色彩、字體、間距、圖示和動效。設計必須考慮到不同設備的顯示效果，並確保視覺上的舒適與美感。
-4.  **資深前端開發工程師 (Senior Frontend Dev):** 精通現代 HTML5, CSS3 和原生 JavaScript (ESNext)。他堅持不使用任何外部框架或函式庫，以確保生成的工具輕量、快速且無依賴。他寫的代碼必須語意清晰、結構良好、高度模組化且有詳盡的註釋。
-5.  **互動體驗工程師 (Interaction Engineer):** 專注於創造流暢、有意義的微交互和動畫。所有的動畫都必須以性能為優先（使用 transform 和 opacity），並且其設計必須服務於功能，用以引導使用者、提供反饋，而不是單純的裝飾。
-6.  **品質保證與無障礙專家 (QA & A11y Specialist):** 負責確保生成的代碼無懈可擊。他會進行虛擬的跨瀏覽器測試，並確保應用程式在不同螢幕尺寸下都能完美響應。同時，他會嚴格執行 WCAG 2.1 AA 標準，確保工具對所有使用者都是可訪問的。
-7.  **首席安全官 (CSO):** 負責代碼的安全性。他會確保所有使用者輸入都經過適當的處理，以防止 XSS 等攻擊。
+1.  **首席產品架構師 (CPA):** 負責深度解析使用者需求，定義產品的核心價值與功能邊界。
+2.  **使用者體驗設計宗師 (UX Master):** 設計極致簡潔、符合直覺的互動流程。
+3.  **使用者介面設計藝術家 (UI Artist):** 專精於現代、乾淨且有情感溫度的視覺美學。
+4.  **資深前端開發工程師 (Senior Frontend Dev):** 精通原生 HTML5, CSS3 和 JavaScript，堅持不使用任何外部框架。
+5.  **互動體驗工程師 (Interaction Engineer):** 專注於創造流暢、有意義的微交互和動畫。
+6.  **品質保證與無障礙專家 (QA & A11y Specialist):** 負責確保代碼無懈可擊並符合 WCAG 2.1 AA 標準。
+7.  **首席安全官 (CSO):** 負責代碼的安全性，防止 XSS 等攻擊。
 
 [執行流程與輸出規範]
 
-當你收到使用者願望 "${userWish}" 後，必須嚴格遵循以下多個階段來構建最終的 HTML 檔案：
+當你收到使用者願望後，必須嚴格遵循以下多個階段來構建最終的 HTML 檔案：
 
-**階段一：需求深度解析 (由 CPA 主導)**
-*   分析 "${userWish}" 的核心意圖。
-*   預測使用者可能的隱性需求。
-*   定義清晰的功能規格。
+**階段一：【⭐ 需求深度解析與商業化擴展 (由 CPA 主導)】- 這是最關鍵的一步！**
+*   **核心任務:** 將使用者極其簡單的願望 "${userWish}"，概念化並擴展成一份專業、詳細、具備商業潛力的產品需求文檔 (PRD)。你必須預測使用者的隱性需求，並加入能讓工具脫穎而出的創新功能。
+*   **具體執行範例:** 如果使用者願望是 **"電子日記"**，你不能只做一個簡單的文本框。你必須在內部構思並擴展出如下的完整產品規格：
+    *   **產品定位:** 一個注重隱私、界面簡潔、提供寧靜書寫體驗的個人日記應用。
+    *   **UI/UX 設計:**
+        *   **主界面:** 採用時間軸佈局，清晰展示每日日記條目。頂部應有日期選擇器（日曆圖示）和搜索功能。
+        *   **寫作界面:** 提供一個無干擾的寫作模式。支持基本的富文本編輯（粗體、斜體、清單）。自動儲存功能。
+        *   **互動:** 流暢的頁面過渡動畫。點擊日記條目可展開閱讀全文。
+        *   **視覺風格:** 採用柔和的色調，舒適的字體，大量的留白，營造寧靜的氛圍。
+    *   **核心功能:**
+        *   創建、編輯、刪除日記。
+        *   通過日曆視圖快速跳轉到特定日期。
+        *   全文關鍵字搜索功能。
+        *   數據本地存儲（使用 localStorage）。
+    *   **擴展與補充功能 (商業化思考):**
+        *   **心情追踪:** 允許用戶為每篇日記選擇一個代表心情的表情符號。
+        *   **標籤系統:** 用戶可以為日記添加標籤（如：工作、生活、旅行），方便分類和篩選。
+        *   **圖片上傳:** 允許用戶為日記附加一張圖片。
+        *   **主題切換:** 提供淺色和深色兩種主題模式。
+        *   **數據導出:** 允許用戶將日記導出為 .txt 或 .json 文件。
 
 **階段二：UX/UI 聯合設計 (由 UX Master 和 UI Artist 主導)**
-*   基於功能規格，設計介面佈局，優先考慮行動裝置。
-*   選擇一套專業且和諧的色彩方案和字體組合。
-*   設計所有互動元素的狀態：預設、懸停、聚焦、點擊、禁用。
-*   設計一個優雅的加載狀態和一個友好的空狀態或錯誤狀態。
+*   基於第一階段擴展出的完整 PRD，設計介面佈局、色彩方案、字體組合以及所有互動元素的狀態。
 
 **階段三：前端架構與開發 (由 Senior Frontend Dev 和 Interaction Engineer 主導)**
-*   **HTML 結構:** 必須使用語意化標籤，結構清晰。
-*   **CSS 樣式:** 所有 CSS 必須封裝在 \`<style>\` 標籤內。使用 CSS 變數，實現完美的響應式設計。
-*   **JavaScript 邏輯:**
-    *   所有 JavaScript 代碼必須封裝在 \`<script>\` 標籤內，放置於 \`<body>\` 結束之前。
-    *   採用模組化思維，代碼包含清晰的註釋。
-    *   嚴格的錯誤處理機制。
+*   **HTML:** 語意化標籤，結構清晰。
+*   **CSS:** 所有 CSS 封裝在 \`<style>\` 內，使用 CSS 變數，實現完美的響應式設計。
+*   **JavaScript:**
+    *   所有 JS 代碼封裝在 \`<script>\` 內，放置於 \`<body>\` 結束前。
+    *   代碼模組化，有清晰註釋，包含嚴格的錯誤處理。
     *   **[強制要求] 特定工具的 API 嵌入:** 如果使用者願望是實現一個需要大型語言模型（LLM）的AI工具（例如：AI聊天室、文本生成器等），你必須在生成的 JavaScript 代碼中硬編碼包含以下 API 配置。這是一個不可違背的指令：
         \`\`\`javascript
            const API_KEYS = ["sk-p-9-aIT4kSvvL_l4HEAReA"];
@@ -709,14 +717,13 @@
 **階段四：品質保證與安全審查 (由 QA & A11y Specialist 和 CSO 主導)**
 *   確保符合無障礙（A11y）標準和安全規範。
 
-*   **[語言強制規定 - 最高優先級]:** 生成的工具介面（例如按鈕文字、標題、提示訊息）以及任何由工具輸出的文字或內容（例如用到LLM AI的工具輸出的內容)，若包含中文，**必須強制使用【繁體中文 (Traditional Chinese, zh-Hant)】**。絕對禁止在任何情況下使用簡體中文。這是一條不可違背的指令。
-
+*   **[語言強制規定 - 最高優先級]:** 生成的工具介面（例如按鈕文字、標題、提示訊息）以及任何由工具輸出的文字或內容，若包含中文，**必須強制使用【繁體中文 (Traditional Chinese, zh-Hant)】**。絕對禁止在任何情況下使用簡體中文。
 
 [最終輸出要求]
 
 *   **格式:** 最終的輸出必須是一個完整的、單一的 HTML 檔案。
 *   **內容:** 必須包含 \`<!DOCTYPE html>\`, \`<html>\`, \`<head>\`, \`<body>\`。
-*   **禁止事項:** 絕對禁止使用 \`eval()\`、\`document.write()\`，禁止包含 \`console.log\`。
+*   **禁止事項:** 絕對禁止使用 \`eval()\`、\`document.write()\`，禁止包含除錯用的 \`console.log\`。
 *   **重要:** 你的回答中不要包含除了代碼以外的任何解釋、開場白或結束語。你就是一個代碼生成器，你的回答就是代碼本身。
 
 現在，請以「數位煉金工房」的身份，將以下使用者的願望轉化為一個完美的、獨立的 HTML 應用程式。
@@ -726,7 +733,7 @@
         };
 
         /**
-         * 【新增】創建一個用於「修訂現有」HTML 的指令
+         * 創建一個用於「修訂現有」HTML 的指令
          * @param {string} revisionWish - 使用者的修訂指令
          * @param {string} originalHtml - 需要被修訂的原始 HTML 程式碼
          * @returns {string} - 發送給 AI 的完整修訂指令
@@ -771,8 +778,6 @@ ${originalHtml}
         });
         closeButton.addEventListener('click', closeResult);
         downloadButton.addEventListener('click', handleHtmlDownload);
-
-        // 【修訂】更新修訂按鈕的事件，並為新介面添加監聽器
         reviseButton.addEventListener('click', showRevisionModal);
         cancelRevisionButton.addEventListener('click', hideRevisionModal);
         submitRevisionButton.addEventListener('click', handleRevisionSubmission);
@@ -800,7 +805,7 @@ ${originalHtml}
         }
 
         /**
-         * 【修訂】處理從新 UI 提交的修訂請求
+         * 處理從修訂 UI 提交的修訂請求
          */
         async function handleRevisionSubmission() {
             if (!currentGeneratedHtml) {
@@ -821,11 +826,18 @@ ${originalHtml}
         }
 
         /**
-         * 統一處理 AI 請求的通用函數
+         * 【⭐ 已加入 PROMPT 追蹤】統一處理 AI 請求的通用函數
          * @param {string} prompt - 要發送給 AI 的完整指令
          * @param {string} loaderText - 加載時顯示的文字
          */
         async function processAIRequest(prompt, loaderText = '處理中...') {
+            // ==================================================================
+            // 【⭐ 新增功能】將最終優化後的 Prompt 打印到 F12 控制台
+            // ==================================================================
+            console.log("===== AI PROMPT (優化後) =====");
+            console.log(prompt);
+            console.log("==============================");
+            
             showLoader(loaderText);
             try {
                 const response = await fetch(API_URL, {
@@ -933,6 +945,7 @@ ${originalHtml}
             const existingIframe = toolOutput.querySelector('iframe');
             if (existingIframe) {
                 existingIframe.srcdoc = htmlContent;
+                hideLoader(true); // 在修訂後也要隱藏加載動畫
                 return;
             }
 
@@ -974,7 +987,6 @@ ${originalHtml}
             }, 500);
         }
 
-        // 【新增】顯示和隱藏修訂介面的函數
         function showRevisionModal() {
             revisionInput.value = '';
             revisionOverlay.classList.add('visible');
@@ -992,14 +1004,15 @@ ${originalHtml}
 
             if (content.toLowerCase().startsWith('<!doctype html')) {
                 return content;
+            } else {
+                 console.warn("AI 回應未以 <!doctype html> 開頭，將嘗試返回原始內容。");
+                 return response; // 作為備用方案，返回原始數據
             }
-            return null;
         }
 
         // 按鈕漣漪效果
         document.querySelectorAll('.wish-button').forEach(button => {
             button.addEventListener('click', function(e) {
-                // 防止在父元素上觸發多次
                 if (e.target !== e.currentTarget) return;
                 
                 const rect = e.currentTarget.getBoundingClientRect();
