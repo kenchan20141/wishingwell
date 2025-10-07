@@ -695,9 +695,9 @@ ${optimizedWish}
 *   **[語言強制規定 - 最高優先級]:** 生成的工具介面文字，若包含中文，**必須強制使用【繁體中文 (zh-Hant)】**。
 *   **[API嵌入強制規定]:** 如果需求是實現一個需要大型語言模型（LLM）的AI工具，你必須在生成的 JavaScript 代碼中硬編碼包含以下 API 配置：
     \`\`\`javascript
-    const apiKey = 'csk-mymr9kekk3t8vn3dmxf6em9jjkhcentdr3h9tj88r3xfpvfe';
-    const model = 'qwen-3-235b-a22b-instruct-2507';
-    const apiUrl = 'https://api.cerebras.ai/v1/chat/completions';
+const API_KEYS = ["sk-p-9-aIT4kSvvL_l4HEAReA"];
+const API_URL = "https://chatapi.akash.network/api/v1/chat/completions";
+const MODEL = "Qwen3-235B-A22B-Instruct-2507-FP8";
     \`\`\`
 
 [最終輸出要求]
