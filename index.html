@@ -892,7 +892,7 @@ async function fetchAIResponse(prompt) {
         body: JSON.stringify({
             model: MODEL,
             messages: [{ role: 'user', content: prompt }],
-            max_tokens: 4096,
+            max_tokens: 64000,
             temperature: 0.3
         })
     });
@@ -930,7 +930,7 @@ function handleHtmlDownload() {
 // --- UI 控制函數 ---
 
 function showLoader(isInitial) {
-    loaderText.textContent = isInitial ? '正在為你度身訂製...' : '正在準備修訂...';
+    loaderText.textContent = isInitial ? '正在為你實現願望...' : '正在準備修訂...';
     loader.classList.add('active');
     if (!resultContainer.classList.contains('visible')) {
         mainInterface.style.transition = 'opacity 0.5s ease, filter 0.5s ease';
