@@ -155,6 +155,18 @@
             transform: translateY(0);
             box-shadow: none;
         }
+        
+        .wish-button.secondary {
+            background-color: transparent;
+            color: var(--wabi-sabi-accent);
+            border-color: var(--wabi-sabi-border);
+        }
+
+        .wish-button.secondary:hover {
+            background-color: var(--wabi-sabi-bg);
+            border-color: var(--wabi-sabi-accent);
+            color: var(--wabi-sabi-text);
+        }
 
         .ripple {
             position: absolute;
@@ -403,6 +415,57 @@
             height: auto; /* 自動高度 */
             min-height: 20px;
         }
+        
+        /* 
+        ==========================================================================
+        修訂介面 (Revision Interface)
+        ==========================================================================
+        */
+        .revision-overlay {
+            position: fixed;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            background: rgba(244, 242, 239, 0.8);
+            backdrop-filter: blur(5px);
+            z-index: 10000;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            opacity: 0;
+            visibility: hidden;
+            transition: opacity var(--animation-duration-fast) ease, visibility 0s var(--animation-duration-fast);
+        }
+
+        .revision-overlay.visible {
+            opacity: 1;
+            visibility: visible;
+            transition: opacity var(--animation-duration-fast) ease, visibility 0s;
+        }
+
+        .revision-modal {
+            width: 90%;
+            max-width: 500px;
+            text-align: center;
+            transform: scale(0.95);
+            transition: transform var(--animation-duration-fast) ease;
+        }
+
+        .revision-overlay.visible .revision-modal {
+            transform: scale(1);
+        }
+
+        .revision-modal .wish-input {
+            font-size: 1.5rem;
+            margin-bottom: 2rem;
+        }
+
+        .revision-actions {
+            display: flex;
+            gap: 1rem;
+            justify-content: center;
+        }
 
         /* 
         ==========================================================================
@@ -484,6 +547,9 @@
                 width: 32px;
                 height: 32px;
             }
+            .revision-actions {
+                flex-direction: column;
+            }
         }
     </style>
 </head>
@@ -493,7 +559,7 @@
 
     <div class="container" id="main-interface">
         <div class="wish-input-wrapper">
-            <input type="text" id="wish-input" class="wish-input" placeholder="許下一個願望...">
+            <input type="text" id="wish-input" class="wish-input" placeholder="你想要甚麼工具？">
         </div>
         <button id="wish-button" class="wish-button">實現</button>
         <div id="error-message" class="error-message"></div>
@@ -518,14 +584,29 @@
     <div id="result-container">
         <div class="result-content-wrapper">
             <div class="result-header">
-   <button id="download-button" class="result-control-button" title="下載 HTML">
-    <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke-width="1.5" stroke="currentColor">
-        <path stroke-linecap="round" stroke-linejoin="round" d="M3 16.5v2.25A2.25 2.25 0 0 0 5.25 21h13.5A2.25 2.25 0 0 0 21 18.75V16.5M16.5 12 12 16.5m0 0L7.5 12m4.5 4.5V3" />
-    </svg>
-</button>
-    <button id="close-button" class="result-control-button close-button" title="關閉"></button>
-</div>
+               <button id="download-button" class="result-control-button" title="下載 HTML">
+                    <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke-width="1.5" stroke="currentColor">
+                        <path stroke-linecap="round" stroke-linejoin="round" d="M3 16.5v2.25A2.25 2.25 0 0 0 5.25 21h13.5A2.25 2.25 0 0 0 21 18.75V16.5M16.5 12 12 16.5m0 0L7.5 12m4.5 4.5V3" />
+                    </svg>
+                </button>
+                <button id="revise-button" class="result-control-button" title="修訂願望">
+                    <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke-width="1.5" stroke="currentColor">
+                        <path stroke-linecap="round" stroke-linejoin="round" d="M16.023 9.348h4.992v-.001M2.985 19.644v-4.992m0 0h4.992m-4.993 0 3.181 3.183a8.25 8.25 0 0 0 11.664 0l3.181-3.183m-4.991-2.691V5.25a2.25 2.25 0 0 0-2.25-2.25h-4.5a2.25 2.25 0 0 0-2.25 2.25v4.992m2.25 0h4.992" />
+                    </svg>
+                </button>
+                <button id="close-button" class="result-control-button close-button" title="關閉"></button>
+            </div>
             <div id="tool-output"></div>
+        </div>
+    </div>
+    
+    <div id="revision-overlay" class="revision-overlay">
+        <div class="revision-modal">
+            <input type="text" id="revision-input" class="wish-input" placeholder="描述你的修訂...">
+            <div class="revision-actions">
+                <button id="submit-revision-button" class="wish-button">優化</button>
+                <button id="cancel-revision-button" class="wish-button secondary">取消</button>
+            </div>
         </div>
     </div>
 
@@ -547,11 +628,18 @@
         const toolOutput = document.getElementById('tool-output');
         const closeButton = document.getElementById('close-button');
         const downloadButton = document.getElementById('download-button');
-        
         const errorMessage = document.getElementById('error-message');
+        
+        // 新增修訂功能元素
+        const reviseButton = document.getElementById('revise-button');
+        const revisionOverlay = document.getElementById('revision-overlay');
+        const revisionInput = document.getElementById('revision-input');
+        const submitRevisionButton = document.getElementById('submit-revision-button');
+        const cancelRevisionButton = document.getElementById('cancel-revision-button');
 
         // --- 狀態變數 ---
         let currentGeneratedHtml = '';
+        let originalUserWish = '';
 
         // --- API 配置 ---
         const apiKey = 'csk-mymr9kekk3t8vn3dmxf6em9jjkhcentdr3h9tj88r3xfpvfe';
@@ -559,7 +647,7 @@
         const apiUrl = 'https://api.cerebras.ai/v1/chat/completions';
         
         // ==========================================================================
-        //  核心功能：超級指令生成器 (已加入 API 嵌入指令)
+        //  核心功能：超級指令生成器
         // ==========================================================================
         const getSuperPrompt = (userWish) => {
             return `
@@ -624,68 +712,81 @@
 **使用者願望：** "${userWish}"
 `;
         };
+        
+        // 新增：修訂指令生成器
+        const getRevisionPrompt = (originalWish, revisionRequest) => {
+            return `
+[SYSTEM ROLE: EXPERT WEB APPLICATION REFINER]
+
+You are a highly skilled AI assistant specializing in iterative web development. You have previously generated a complete, single-file HTML application based on an initial user request. Now, you must intelligently modify that application based on a new revision instruction from the user.
+
+[CONTEXT OF PREVIOUS WORK]
+*   **Initial User Wish:** "${originalWish}"
+*   You have already produced a full HTML file containing the necessary HTML structure, CSS styles within a \`<style>\` tag, and JavaScript logic within a \`<script>\` tag. The design philosophy was modern, clean, and minimalistic, without external libraries.
+
+[USER'S REVISION INSTRUCTION]
+The user now wants to modify the application with the following request:
+*   **Revision Request:** "${revisionRequest}"
+
+[YOUR TASK]
+Your task is to act as an expert developer receiving a change request.
+1.  **Analyze the Revision:** Carefully read and understand the user's revision request in the context of the original wish.
+2.  **Modify the Code:** Intelligently modify the HTML, CSS, and/or JavaScript of the *previous output* to implement the requested changes. Do NOT start from scratch. The goal is refinement, not replacement.
+3.  **Maintain Integrity:** Ensure that the modifications are seamlessly integrated. The overall design aesthetic, code quality, and single-file structure must be preserved.
+4.  **Preserve Core Functionality:** The original core functionality derived from "${originalWish}" should remain unless the revision explicitly asks to change it.
+5.  **Adhere to Original Constraints:** You must continue to follow all the constraints from the initial prompt, including:
+    *   Output is a single, complete HTML file.
+    *   No external libraries or frameworks.
+    *   Code is semantic, well-commented, and secure.
+    *   **[Language Enforcement - Highest Priority]:** All user-facing text, including any new elements, must be in **繁體中文 (Traditional Chinese, zh-Hant)**.
+
+[FINAL OUTPUT REQUIREMENT]
+Your entire response must be ONLY the new, complete, modified HTML code. Do not include any explanations, apologies, or conversational text. Just provide the final, ready-to-use HTML file.
+
+Now, process the revision request and generate the updated HTML application.
+`;
+        };
 
         // --- 事件監聽器 ---
 
         wishButton.addEventListener('click', handleWishSubmission);
         wishInput.addEventListener('keydown', (event) => {
             if (event.key === 'Enter') {
-                event.preventDefault(); // 防止表單提交
+                event.preventDefault();
                 handleWishSubmission();
             }
         });
         closeButton.addEventListener('click', closeResult);
         downloadButton.addEventListener('click', handleHtmlDownload);
+        
+        // 修訂功能事件監聽器
+        reviseButton.addEventListener('click', showRevisionModal);
+        cancelRevisionButton.addEventListener('click', hideRevisionModal);
+        submitRevisionButton.addEventListener('click', handleRevisionSubmission);
+        revisionInput.addEventListener('keydown', (event) => {
+            if (event.key === 'Enter') {
+                handleRevisionSubmission();
+            }
+        });
      
         
         // --- 核心處理函數 ---
         async function handleWishSubmission() {
             const userWish = wishInput.value.trim();
-
             if (!userWish) {
                 showError('願望不能為空。');
                 return;
             }
 
+            originalUserWish = userWish; // 保存原始願望
             hideError();
             showLoader();
             
             try {
                 const superPrompt = getSuperPrompt(userWish);
+                const generatedContent = await fetchAIResponse(superPrompt);
                 
-                const response = await fetch(apiUrl, {
-                    method: 'POST',
-                    headers: {
-                        'Content-Type': 'application/json',
-                        'Authorization': `Bearer ${apiKey}`
-                    },
-                    body: JSON.stringify({
-                        model: model,
-                        messages: [{ role: 'user', content: superPrompt }],
-                        max_tokens: 4096,
-                        temperature: 0.5
-                    })
-                });
-
-                if (!response.ok) {
-                    const errorData = await response.json();
-                    throw new Error(errorData.error?.message || `HTTP 錯誤! 狀態: ${response.status}`);
-                }
-
-                const data = await response.json();
-                
-                if (!data.choices || data.choices.length === 0 || !data.choices[0].message.content) {
-                    throw new Error('AI 返回的數據格式不正確或為空。');
-                }
-
-                const generatedContent = data.choices[0].message.content;
-                const cleanedHtml = cleanAIResponse(generatedContent);
-
-                if (!cleanedHtml) {
-                    throw new Error('AI 未能生成有效的 HTML 程式碼。');
-                }
-                
-                currentGeneratedHtml = cleanedHtml;
+                currentGeneratedHtml = generatedContent;
                 displayResult(currentGeneratedHtml);
 
             } catch (error) {
@@ -695,21 +796,82 @@
             }
         }
         
+        async function handleRevisionSubmission() {
+            const revisionRequest = revisionInput.value.trim();
+            if (!revisionRequest) {
+                revisionInput.style.borderColor = 'var(--wabi-sabi-error)';
+                setTimeout(() => { revisionInput.style.borderColor = ''; }, 2000);
+                return;
+            }
+
+            hideRevisionModal();
+            showLoader();
+
+            try {
+                const revisionPrompt = getRevisionPrompt(originalUserWish, revisionRequest);
+                const generatedContent = await fetchAIResponse(revisionPrompt);
+                
+                currentGeneratedHtml = generatedContent;
+                updateResultDisplay(currentGeneratedHtml);
+                
+                // 更新原始願望以支持連續修訂
+                originalUserWish = `(Originally: ${originalUserWish}) - Then revised to incorporate: ${revisionRequest}`;
+
+
+            } catch (error) {
+                console.error('修訂願望時發生錯誤:', error);
+                alert(`修訂失敗: ${error.message}`); // 對於修訂錯誤，使用 alert 更直接
+                hideLoader();
+            }
+        }
+        
+        async function fetchAIResponse(prompt) {
+            const response = await fetch(apiUrl, {
+                method: 'POST',
+                headers: {
+                    'Content-Type': 'application/json',
+                    'Authorization': `Bearer ${apiKey}`
+                },
+                body: JSON.stringify({
+                    model: model,
+                    messages: [{ role: 'user', content: prompt }],
+                    max_tokens: 4096,
+                    temperature: 0.5
+                })
+            });
+
+            if (!response.ok) {
+                const errorData = await response.json();
+                throw new Error(errorData.error?.message || `HTTP 錯誤! 狀態: ${response.status}`);
+            }
+
+            const data = await response.json();
+            
+            if (!data.choices || data.choices.length === 0 || !data.choices[0].message.content) {
+                throw new Error('AI 返回的數據格式不正確或為空。');
+            }
+
+            const cleanedHtml = cleanAIResponse(data.choices[0].message.content);
+
+            if (!cleanedHtml) {
+                throw new Error('AI 未能生成有效的 HTML 程式碼。');
+            }
+            
+            return cleanedHtml;
+        }
+        
         function handleHtmlDownload() {
             if (!currentGeneratedHtml) {
                 alert('沒有可下載的內容。');
                 return;
             }
-
             const blob = new Blob([currentGeneratedHtml], { type: 'text/html' });
             const url = URL.createObjectURL(blob);
-            
             const a = document.createElement('a');
             a.href = url;
             a.download = 'wish-tool.html';
             document.body.appendChild(a);
             a.click();
-            
             document.body.removeChild(a);
             URL.revokeObjectURL(url);
         }
@@ -719,15 +881,19 @@
         
         function showLoader() {
             loader.classList.add('active');
-            mainInterface.style.transition = 'opacity 0.5s ease, filter 0.5s ease';
-            mainInterface.style.opacity = '0.5';
-            mainInterface.style.filter = 'blur(3px)';
+            if (!resultContainer.classList.contains('visible')) {
+                mainInterface.style.transition = 'opacity 0.5s ease, filter 0.5s ease';
+                mainInterface.style.opacity = '0.5';
+                mainInterface.style.filter = 'blur(3px)';
+            }
         }
 
         function hideLoader() {
             loader.classList.remove('active');
-            mainInterface.style.opacity = '1';
-            mainInterface.style.filter = 'none';
+             if (!resultContainer.classList.contains('visible')) {
+                mainInterface.style.opacity = '1';
+                mainInterface.style.filter = 'none';
+            }
         }
 
         function showError(message) {
@@ -740,21 +906,23 @@
             errorMessage.classList.remove('visible');
             wishInput.style.borderColor = '';
         }
-
-        function displayResult(htmlContent) {
+        
+        function updateResultDisplay(htmlContent) {
             toolOutput.innerHTML = ''; 
-            
             const iframe = document.createElement('iframe');
             iframe.style.width = '100%';
             iframe.style.height = '100%';
             iframe.style.border = 'none';
             iframe.setAttribute('sandbox', 'allow-scripts allow-same-origin allow-forms allow-popups');
             iframe.srcdoc = htmlContent;
-
             toolOutput.appendChild(iframe);
+            hideLoader();
+        }
+
+        function displayResult(htmlContent) {
+            updateResultDisplay(htmlContent);
             
             setTimeout(() => {
-                hideLoader();
                 mainInterface.style.transition = 'opacity 0.5s, transform 0.5s';
                 mainInterface.style.opacity = '0';
                 mainInterface.style.transform = 'scale(0.9)';
@@ -770,7 +938,7 @@
             resultContainer.classList.remove('visible');
             
             setTimeout(() => {
-                mainInterface.style.display = 'block'; // Or flex/grid depending on original layout
+                mainInterface.style.display = 'block';
                 setTimeout(() => {
                     mainInterface.style.transition = 'opacity 0.5s ease, filter 0.5s ease, transform 0.5s ease';
                     mainInterface.style.opacity = '1';
@@ -778,37 +946,49 @@
                     wishInput.value = '';
                     toolOutput.innerHTML = '';
                     currentGeneratedHtml = '';
+                    originalUserWish = '';
                 }, 50);
             }, 500);
+        }
+        
+        function showRevisionModal() {
+            revisionInput.value = '';
+            revisionOverlay.classList.add('visible');
+            revisionInput.focus();
+        }
+
+        function hideRevisionModal() {
+            revisionOverlay.classList.remove('visible');
         }
         
         function cleanAIResponse(response) {
             const match = response.match(/```html\s*([\s\S]*?)\s*```|([\s\S]*)/);
             let content = match ? (match[1] || match[2] || '') : '';
             content = content.trim();
-
             if (content.toLowerCase().startsWith('<!doctype html')) {
                 return content;
             }
-            return null; // 嚴格要求必須是完整的 HTML 文件
+            return null;
         }
 
         // 按鈕漣漪效果
-        wishButton.addEventListener('click', function(e) {
-            const rect = e.currentTarget.getBoundingClientRect();
-            const x = e.clientX - rect.left;
-            const y = e.clientY - rect.top;
-            
-            const ripples = document.createElement('span');
-            ripples.className = 'ripple';
-            ripples.style.left = x + 'px';
-            ripples.style.top = y + 'px';
-            
-            this.appendChild(ripples);
+        document.querySelectorAll('.wish-button').forEach(button => {
+            button.addEventListener('click', function(e) {
+                const rect = e.currentTarget.getBoundingClientRect();
+                const x = e.clientX - rect.left;
+                const y = e.clientY - rect.top;
+                
+                const ripples = document.createElement('span');
+                ripples.className = 'ripple';
+                ripples.style.left = x + 'px';
+                ripples.style.top = y + 'px';
+                
+                this.appendChild(ripples);
 
-            setTimeout(() => {
-                ripples.remove();
-            }, 800);
+                setTimeout(() => {
+                    ripples.remove();
+                }, 800);
+            });
         });
     });
     </script>
