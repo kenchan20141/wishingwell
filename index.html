@@ -652,7 +652,7 @@
         //  【⭐ 已大幅優化】指令生成器
         // ==========================================================================
 
-        /**
+/**
          * 創建一個用於「從零生成」HTML 的超級指令
          * 這個版本會將簡單的使用者願望，大幅度地擴展和深化為一個完整的產品設計藍圖。
          * @param {string} userWish - 使用者的原始願望
@@ -714,6 +714,51 @@
         const API_URL = "https://chatapi.akash.network/api/v1/chat/completions";
         const MODEL = "DeepSeek-V3-1";
         \`\`\`
+    
+    // ===== 修改開始 =====
+    *   **[強制要求] LLM 回應語言限制:** 在上述 AI 工具的程式碼中，當你編寫呼叫 LLM API (即 fetch 到 API_URL) 的邏輯時，你**必須**在傳送給 API 的 \`messages\` 陣列的最前端，插入一個 \`system\` 角色的訊息，其 \`content\` 必須是 \`「你是一個只能使用繁體中文（zh-Hant）進行交流的AI助手。」\`。這條指令是為了確保最終生成工具的 AI 回應永遠是繁體中文。
+        *   **程式碼生成範例 (你必須遵循此結構):**
+            \`\`\`javascript
+            async function callLLM(userInput) {
+                // ... (例如：顯示加載動畫等前置處理) ...
+                try {
+                    const response = await fetch(API_URL, {
+                        method: 'POST',
+                        headers: {
+                            'Content-Type': 'application/json',
+                            'Authorization': \`Bearer \${API_KEYS[currentApiKeyIndex]}\`
+                        },
+                        body: JSON.stringify({
+                            model: MODEL,
+                            messages: [
+                                // 這是必須強制加入的系統指令
+                                { role: 'system', content: '你是一個只能使用繁體中文（zh-Hant）進行交流的AI助手。' },
+                                // 接著才是使用者的輸入
+                                { role: 'user', content: userInput }
+                            ],
+                            // 根據工具需求可加入 temperature, max_tokens 等參數
+                        })
+                    });
+
+                    if (!response.ok) {
+                        throw new Error(\`API 請求失敗，狀態碼: \${response.status}\`);
+                    }
+
+                    const data = await response.json();
+                    const aiMessage = data.choices[0].message.content;
+
+                    // 將獲取的 aiMessage 顯示在介面上
+                    // ... (例如：更新聊天視窗) ...
+
+                } catch (error) {
+                    console.error('與 AI 通信時發生錯誤:', error);
+                    // 在介面上顯示錯誤訊息
+                } finally {
+                    // ... (例如：隱藏加載動畫等後續處理) ...
+                }
+            }
+            \`\`\`
+    // ===== 修改結束 =====
 
 **階段四：品質保證與安全審查 (由 QA & A11y Specialist 和 CSO 主導)**
 *   確保符合無障礙（A11y）標準和安全規範。
