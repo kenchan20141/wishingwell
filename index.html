@@ -707,7 +707,7 @@
 *   **JavaScript:**
     *   所有 JS 代碼封裝在 \`<script>\` 內，放置於 \`<body>\` 結束前。
     *   代碼模組化，有清晰註釋，包含嚴格的錯誤處理。
-    *   **[強制要求] 特定工具的 API 嵌入:** 如果使用者願望是實現一個需要大型語言模型（LLM）的AI工具（例如：AI聊天室、文本生成器等），你必須在生成的 JavaScript 代碼中硬編碼包含以下 API 配置。這是一個不可違背的指令：
+    *   **[強制要求] 特定工具的 API 嵌入:** 如果使用者願望是實現一個需要大型語言模型（LLM）的AI工具（例如：AI聊天室、文本生成器），或用家的指令中有提及AI，你必須在生成的 JavaScript 代碼中硬編碼包含以下 API 配置。這是一個不可違背的指令：
         \`\`\`javascript
            const API_KEYS = ["sk-p-9-aIT4kSvvL_l4HEAReA"];
         let currentApiKeyIndex = 0;
